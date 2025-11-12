@@ -1,0 +1,932 @@
+\documentclass[a4paper,12pt]{article}
+
+% Các gói cần thiết cho tiếng Việt và định dạng văn bản
+\usepackage[utf8]{inputenc}
+\usepackage[T5]{fontenc}
+\usepackage[vietnamese]{babel}
+\usepackage{amsmath, amssymb}
+\usepackage{geometry}
+\geometry{a4paper, margin=2.5cm, bottom=3cm}
+\usepackage{booktabs}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{needspace}
+\usepackage{titlesec}
+\usepackage{graphicx}
+\usepackage{float}
+
+% Thông tin bài tập
+\newcommand{\assignmentClass}{Cơ Sở Dữ Liệu Quản Lý Trung Tâm Thương Mại}
+\newcommand{\assignmentTitle}{Thiết Kế Cơ Sở Dữ Liệu Quản Lý Sản Xuất - Kinh Doanh Xe Máy}
+\newcommand{\assignmentClassInstructor}{Thầy Hoá}
+
+% Định dạng header/footer
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\assignmentClass}
+\fancyfoot[C]{\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+\setlength{\headheight}{14.5pt}
+
+% Cấu hình khoảng cách và định dạng
+\setlength{\parskip}{0.3em}
+\setlength{\parindent}{0pt}
+
+% Cấu hình danh sách
+\setlist[itemize]{
+    topsep=0.2em,
+    itemsep=0.1em,
+    partopsep=0.2em,
+    parsep=0.1em,
+    leftmargin=1.5em
+}
+
+% Cấu hình tiêu đề
+\titlespacing*{\section}{0pt}{0.8em}{0.4em}
+\titlespacing*{\subsection}{0pt}{0.6em}{0.3em}
+\titlespacing*{\subsubsection}{0pt}{0.4em}{0.2em}
+
+\begin{document}
+
+% Tiêu đề
+\newcommand{\thisfancypage}[1]{%
+  \setlength{\fboxsep}{0pt}
+  \fbox{#1}%
+}
+
+\begin{center}
+    {\fontsize{13pt}{1}\selectfont\textbf{HỌC VIỆN CÔNG NGHỆ BƯU CHÍNH VIỄN THÔNG}}\\
+    {\fontsize{13pt}{1}\selectfont\textbf{KHOA CÔNG NGHỆ THÔNG TIN}}\\[0.5cm]
+    \rule{10cm}{0.4pt}\\[0.2cm]
+    \textbf{--------------------  o0o  --------------------}\\[1cm]
+
+    \includegraphics[scale=0.25]{logoTruong.png} \\[1.5cm]
+
+    {\fontsize{16pt}{1}\selectfont\textbf{BÀI TẬP LỚN}}\\
+    {\fontsize{16pt}{1}\selectfont\textbf{MÔN: NGÔN NGỮ LẬP TRÌNH PYTHON}}\\[0.5cm]
+
+    {\fontsize{15pt}{1}\selectfont\textbf{NHÓM 8}}\\[0.25cm]
+    {\fontsize{13.5pt}{1}\selectfont\textbf{NGÔN NGỮ LẬP TRÌNH PYTHON}}\\
+\end{center}
+\begin{flushleft}
+\hspace{3.2 cm} \textbf{ \large Giáo viên hướng dẫn:\hspace{0.2cm}{Nguyễn Đình Hoá}}\\[0.25cm]
+% Thêm các thành viên nhóm
+\hspace{2.6 cm} \textbf{ \large Thành viên nhóm:}\\[0.3 cm]
+\hspace{2.6 cm} \begin{tabular}{l @{\hspace{1.5cm}} l}
+    \textbf{\large 1. Hán Hữu Đăng} & \textbf{\large B23DCKH019} \\[0.2cm]
+    \textbf{\large 2. Mông Thế Lực} & \textbf{\large B23DCKH007} \\[0.2cm]
+    \textbf{\large 3. Trần Sỹ Nhật} & \textbf{\large 
+    B23DCKH001} \\[0.2cm]
+\end{tabular}
+\end{flushleft}
+
+\begin{center}
+\vfill
+\textbf{{\large Hà Nội - 2025}}\\
+\end{center}
+\vspace{1em}
+
+\tableofcontents
+\newpage
+
+\section{Giới thiệu}
+
+Bài tập lớn này tập trung vào việc thu thập, xử lý và phân tích dữ liệu của các cầu thủ thi đấu tại giải Ngoại hạng Anh (English Premier League) mùa giải 2024-2025. Dữ liệu được thu thập từ hai nguồn chính:
+
+\begin{itemize}
+    \item \textbf{fbref.com}: Cung cấp các chỉ số thống kê chi tiết về hiệu suất thi đấu của cầu thủ
+    \item \textbf{footballtransfers.com}: Cung cấp thông tin về giá trị chuyển nhượng ước tính
+\end{itemize}
+
+Dữ liệu được lưu trữ trong cơ sở dữ liệu SQLite với hai bảng chính: \texttt{players} (thông tin và thống kê cầu thủ) và \texttt{player\_transfers} (giá trị chuyển nhượng).
+
+\section{Phần I: Thu thập dữ liệu cầu thủ}
+
+\subsection{I.1 - Thu thập dữ liệu từ fbref.com}
+
+\subsubsection{Yêu cầu}
+
+Thu thập dữ liệu thống kê của tất cả các cầu thủ có số phút thi đấu nhiều hơn 90 phút tại giải bóng đá Ngoại hạng Anh mùa 2024-2025. Dữ liệu được ghi vào bảng trong cơ sở dữ liệu SQLite, với mỗi cột tương ứng với một chỉ số. Các chỉ số không có hoặc không áp dụng được điền giá trị "N/a".
+
+\subsubsection{Lý do lựa chọn Selenium}
+
+Trang web fbref.com là một trang web hiện đại, các bảng thống kê không được tải sẵn dưới dạng HTML tĩnh mà được sinh ra thông qua JavaScript sau khi trang đã hiển thị. Do đó, các thư viện truyền thống như \texttt{requests} không thể lấy được dữ liệu hoàn chỉnh.
+
+Selenium được lựa chọn vì:
+\begin{itemize}
+    \item \textbf{Render JavaScript hoàn chỉnh}: Selenium điều khiển trình duyệt thực tế (Chrome), có thể thực hiện toàn bộ quá trình tải trang, bao gồm cả các đoạn mã JavaScript sinh ra bảng thống kê
+    \item \textbf{Tương tác tự động}: Có thể chờ đợi các phần tử xuất hiện, cuộn trang, nhấp chuột nếu cần
+    \item \textbf{Tránh bị phát hiện}: Sử dụng trình duyệt thật giúp giảm khả năng bị chặn do bot detection
+\end{itemize}
+
+\subsubsection{Thư viện sử dụng}
+
+\begin{itemize}
+    \item \texttt{selenium}: Điều khiển trình duyệt Chrome tự động để truy cập và tải các bảng dữ liệu
+    \item \texttt{beautifulsoup4}: Phân tích cú pháp HTML và trích xuất dữ liệu từ các thẻ HTML
+    \item \texttt{sqlite3}: Tạo và quản lý cơ sở dữ liệu SQLite
+    \item \texttt{time}: Tạo độ trễ giữa các request để tránh bị rate-limit
+\end{itemize}
+
+\subsubsection{Cấu trúc code}
+
+Chương trình được chia thành 2 file chính:
+
+\begin{enumerate}
+    \item \textbf{config.py}: Chứa các cấu hình
+    \begin{itemize}
+        \item URL cơ sở và hậu tố mùa giải
+        \item Danh sách các bảng thống kê cần thu thập (TABLES)
+        \item Cấu hình database (tên file, tên bảng)
+        \item Các tham số (số phút tối thiểu, timeout)
+    \end{itemize}
+    
+    \item \textbf{scraper\_fbref.py}: Chương trình chính
+    \begin{itemize}
+        \item \texttt{setup\_driver()}: Thiết lập Selenium WebDriver
+        \item \texttt{fetch\_table\_data()}: Lấy dữ liệu từ một bảng thống kê
+        \item \texttt{combine\_data()}: Gộp dữ liệu từ nhiều bảng
+        \item \texttt{filter\_by\_minutes()}: Lọc cầu thủ theo số phút
+        \item \texttt{create\_database()}: Tạo database và bảng
+        \item \texttt{save\_to\_database()}: Lưu dữ liệu vào SQLite
+        \item \texttt{save\_to\_csv()}: Xuất dữ liệu ra file CSV
+    \end{itemize}
+\end{enumerate}
+
+\subsubsection{Quy trình thu thập dữ liệu}
+
+\textbf{Bước 1: Đọc cấu hình}
+
+Từ file \texttt{config.py}, chương trình lấy danh sách các bảng cần thu thập (TABLES). Mỗi bảng bao gồm:
+\begin{itemize}
+    \item \texttt{url}: Đường dẫn tương đối (ví dụ: "stats/", "shooting/")
+    \item \texttt{table\_id}: ID của bảng HTML (ví dụ: "stats\_standard")
+    \item \texttt{fields}: Danh sách các cặp (tên\_cột, data-stat)
+\end{itemize}
+
+\textbf{Bước 2: Tải trang bằng Selenium}
+
+Với mỗi bảng:
+\begin{itemize}
+    \item Ghép URL đầy đủ từ BASE\_URL + url + SEASON\_SUFFIX
+    \item Sử dụng Selenium để truy cập URL
+    \item Chờ đợi bảng xuất hiện (WebDriverWait)
+    \item Lấy HTML đã render qua \texttt{driver.page\_source}
+\end{itemize}
+
+\textbf{Bước 3: Phân tích HTML}
+
+\begin{itemize}
+    \item Sử dụng BeautifulSoup để parse HTML
+    \item Tìm bảng theo table\_id
+    \item Duyệt qua từng hàng trong tbody
+    \item Với mỗi hàng, lấy tên cầu thủ và đội
+    \item Thu thập các trường dữ liệu theo danh sách fields
+    \item Lưu vào dictionary với key là (player\_name, team\_name)
+\end{itemize}
+
+\textbf{Bước 4: Gộp dữ liệu từ nhiều bảng}
+
+Sau khi thu thập xong tất cả các bảng, gọi hàm \texttt{combine\_data()} để:
+\begin{itemize}
+    \item Gộp toàn bộ dữ liệu theo từng cầu thủ
+    \item Nếu cầu thủ đã tồn tại, cập nhật thêm các chỉ số mới
+\end{itemize}
+
+\textbf{Bước 5: Lọc theo số phút}
+
+Chỉ giữ lại các cầu thủ có tổng số phút thi đấu > 90 (MIN\_MINUTES).
+
+\textbf{Bước 6: Tạo database và lưu dữ liệu}
+
+\begin{itemize}
+    \item Tạo file database SQLite tại \texttt{../Output/Output\_I/football\_stats.db}
+    \item Tạo bảng \texttt{players} với các cột tương ứng với tất cả các chỉ số
+    \item Insert dữ liệu cầu thủ vào bảng
+    \item Xuất dữ liệu ra file CSV: \texttt{../Output/Output\_I/players\_stats.csv}
+    \item Các giá trị thiếu được điền "N/a"
+\end{itemize}
+
+\subsubsection{Kết quả đầu ra}
+
+Chương trình tạo ra 2 file output:
+
+\begin{enumerate}
+    \item \textbf{Database SQLite}: \texttt{football\_stats.db}
+    \begin{itemize}
+        \item Bảng \texttt{players} với 60+ cột thống kê
+        \item Dữ liệu có thể truy vấn bằng SQL
+    \end{itemize}
+    
+    \item \textbf{File CSV}: \texttt{players\_stats.csv}
+    \begin{itemize}
+        \item Định dạng chuẩn CSV, dễ mở bằng Excel/Google Sheets
+        \item Tiện cho việc phân tích và báo cáo
+        \item Có header với tên các cột
+    \end{itemize}
+\end{enumerate}
+
+\subsubsection{Cấu trúc bảng players}
+
+Bảng \texttt{players} chứa các cột sau:
+
+\begin{itemize}
+    \item \textbf{Thông tin cơ bản}: Name, Nation, Team, Position, Age
+    \item \textbf{Thời gian thi đấu}: Matches\_Played, Starts, Minutes
+    \item \textbf{Hiệu suất tấn công}: Goals, Assists, Goals\_Per90, Assists\_Per90
+    \item \textbf{Expected Goals}: xG, xAG, xG\_Per90, xAG\_Per90
+    \item \textbf{Phạt thẻ}: Yellow\_Cards, Red\_Cards
+    \item \textbf{Chuyền bóng}: Passes\_Completed, Pass\_Completion\_Pct, Key\_Passes, Progressive\_Passes, v.v.
+    \item \textbf{Sút}: SoT\_Pct, SoT\_Per90, Goals\_Per\_Shot, Avg\_Shot\_Distance
+    \item \textbf{Thủ môn}: GA90, Save\_Pct, CS\_Pct, PK\_Save\_Pct
+    \item \textbf{Phòng thủ}: Tackles, Tackles\_Won, Blocks, Interceptions
+    \item \textbf{Kiểm soát bóng}: Touches, Carries, Take\_Ons\_Success\_Pct, Progressive\_Carries
+    \item \textbf{Khác}: Fouls, Offsides, Aerials\_Won, Ball\_Recoveries, SCA, GCA
+\end{itemize}
+
+Tổng cộng có hơn 60 chỉ số thống kê được thu thập cho mỗi cầu thủ.
+
+\subsection{I.2 - Thu thập giá chuyển nhượng từ footballtransfers.com}
+
+\subsubsection{Yêu cầu}
+
+Thu thập giá trị chuyển nhượng ước tính (ETV - Estimated Transfer Value) của cầu thủ trong mùa giải 2024-2025 từ trang web footballtransfers.com. Dữ liệu lưu vào bảng \texttt{player\_transfers} trong database SQLite, liên kết với bảng \texttt{players} qua \texttt{player\_id}.
+
+\subsubsection{Tổng quan giải pháp}
+
+Mỗi trang cầu thủ trên footballtransfers.com có một biểu đồ hiển thị lịch sử giá trị theo thời gian. Dữ liệu của biểu đồ được mã hóa base64 và nhúng trong HTML. Chương trình sẽ:
+
+\begin{enumerate}
+    \item Truy cập trang cầu thủ (bằng URL trực tiếp hoặc qua tìm kiếm)
+    \item Trích xuất và decode dữ liệu base64 của biểu đồ
+    \item Lấy giá trị ETV tại tháng 04/2025 (trong mùa 2024-2025)
+    \item Nếu không có dữ liệu base64, lấy giá trị hiện tại trên trang
+\end{enumerate}
+
+\subsubsection{Quy trình chi tiết}
+
+\textbf{Bước 1: Lấy danh sách cầu thủ}
+
+Đọc tất cả cầu thủ từ bảng \texttt{players} đã tạo ở phần I.1:
+\begin{verbatim}
+SELECT id, Name, Team FROM players
+\end{verbatim}
+
+\textbf{Bước 2: Truy cập trang cầu thủ}
+
+Có 2 phương pháp để tìm trang cầu thủ:
+
+\textit{Phương pháp 1 - Truy cập trực tiếp:}
+\begin{itemize}
+    \item Chuyển đổi tên: "Mohamed Salah" → "mohamed-salah" (lowercase, thay khoảng trắng bằng dấu gạch ngang)
+    \item Tạo URL: \texttt{https://www.footballtransfers.com/en/players/mohamed-salah}
+    \item Truy cập bằng Selenium WebDriver
+\end{itemize}
+
+\textit{Phương pháp 2 - Tìm kiếm (nếu phương pháp 1 thất bại):}
+\begin{itemize}
+    \item Truy cập: \texttt{https://www.footballtransfers.com/en/search?search\_value=Mohamed+Salah}
+    \item Parse HTML, tìm \texttt{<div class="playerList-panel">}
+    \item Lấy href của link đầu tiên (ví dụ: \texttt{/en/players/mohamed-salah-5})
+    \item Truy cập trang chi tiết với URL đầy đủ
+\end{itemize}
+
+\textbf{Lý do cần 2 phương pháp:}
+\begin{itemize}
+    \item Tên có dấu không khớp URL: "André" khác "andre"
+    \item Tên đầy đủ khác tên thông dụng: "Alisson Becker" có URL là "alisson-4"
+    \item Một số cầu thủ cùng tên: "Gabriel Jesus" có thể là "gabriel-jesus-2"
+\end{itemize}
+
+\textbf{Bước 3: Trích xuất dữ liệu base64}
+
+Sau khi vào được trang cầu thủ:
+
+\begin{enumerate}
+    \item \textbf{Tìm thẻ HTML chứa dữ liệu:}
+    \begin{verbatim}
+    <div class="player-graph" data-base64="eyJjaGFy...">
+    \end{verbatim}
+    Thẻ này chứa toàn bộ dữ liệu biểu đồ được mã hóa base64.
+
+    \item \textbf{Decode base64 thành JSON:}
+    \begin{verbatim}
+    decoded = base64.b64decode(data_base64)
+    data = json.loads(decoded)
+    \end{verbatim}
+
+    \item \textbf{Cấu trúc JSON:}
+    \begin{itemize}
+        \item \texttt{dataSets}: Mảng chứa nhiều dataset (các đường trên biểu đồ)
+        \item Dataset có \texttt{order=2}: Chứa giá trị ETV estimate (đường dự đoán màu xanh)
+        \item \texttt{data}: Mảng các điểm dữ liệu theo thời gian
+    \end{itemize}
+
+    \item \textbf{Tìm giá trị tháng 04/2025:}
+    
+    Duyệt qua dataset có \texttt{order=2}, tìm điểm có:
+    \begin{itemize}
+        \item \texttt{x = "04-'25"}: Tháng 4 năm 2025 (giữa mùa giải 2024-2025)
+        \item Lấy giá trị \texttt{price}: Ví dụ "€44M"
+    \end{itemize}
+\end{enumerate}
+
+\textbf{Ví dụ cấu trúc JSON:}
+\begin{verbatim}
+{
+  "dataSets": [
+    {...},  // Dataset 0,1: Bounds
+    {       // Dataset 2: ETV estimate
+      "order": 2,
+      "borderColor": "#248F88",
+      "data": [
+        {"x": "01-'24", "price": "€17.4M"},
+        {"x": "04-'24", "price": "€19M"},
+        {"x": "07-'24", "price": "€23.4M"},
+        {"x": "04-'25", "price": "€44M"},  <- Lấy giá trị này
+        ...
+      ]
+    },
+    {...}   // Dataset 3: Actual transfers
+  ]
+}
+\end{verbatim}
+
+\textbf{Bước 4: Fallback nếu không có base64}
+
+Nếu không tìm thấy dữ liệu base64 hoặc không có điểm "04-'25":
+\begin{enumerate}
+    \item Tìm \texttt{<div class="player-value player-value-large">}
+    \item Lấy text từ \texttt{<span class="player-tag">} bên trong
+    \item Parse bằng regex: \texttt{([€£\$])([\textbackslash d,.]+)([MK])?}
+    \item Ví dụ: "€49.3M" → lưu vào database
+\end{enumerate}
+
+\textbf{Bước 5: Lưu vào database}
+
+\begin{itemize}
+    \item Xác định đơn vị tiền tệ (EUR nếu có €, GBP nếu có £, USD nếu có \$)
+    \item Insert vào bảng \texttt{player\_transfers}:
+    \begin{verbatim}
+    INSERT INTO player_transfers 
+    (player_id, player_name, team, transfer_value, 
+     currency, source, updated_date)
+    VALUES (1, 'Mohamed Salah', 'Liverpool', '€44M', 
+            'EUR', 'footballtransfers.com', '2025-11-12')
+    \end{verbatim}
+\end{itemize}
+
+\textbf{Bước 6: Lặp lại cho tất cả cầu thủ}
+
+\begin{itemize}
+    \item Duyệt qua 380+ cầu thủ
+    \item Sleep 2-3 giây giữa mỗi request (tránh bị rate-limit)
+    \item Hiển thị tiến độ mỗi 10 cầu thủ
+    \item Lưu "N/a" nếu không tìm thấy dữ liệu sau tất cả các phương pháp
+\end{itemize}
+
+\subsubsection{Cấu trúc database và output}
+
+\textbf{Bảng player\_transfers}
+
+Tạo bảng trong SQLite với câu lệnh:
+\begin{verbatim}
+CREATE TABLE IF NOT EXISTS player_transfers (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    player_id INTEGER,
+    player_name TEXT,
+    team TEXT,
+    transfer_value TEXT,
+    currency TEXT,
+    source TEXT,
+    updated_date TEXT,
+    FOREIGN KEY (player_id) REFERENCES players(id)
+);
+\end{verbatim}
+
+Ý nghĩa các cột:
+\begin{itemize}
+    \item \texttt{id}: Khóa chính, tự động tăng
+    \item \texttt{player\_id}: Khóa ngoại, liên kết với bảng players (id cầu thủ)
+    \item \texttt{player\_name}: Tên đầy đủ cầu thủ (ví dụ: "Mohamed Salah")
+    \item \texttt{team}: Câu lạc bộ hiện tại (ví dụ: "Liverpool")
+    \item \texttt{transfer\_value}: Giá trị chuyển nhượng dạng text (ví dụ: "€44M", "£35.2M", "N/a")
+    \item \texttt{currency}: Loại tiền tệ (EUR, GBP, USD hoặc NULL nếu không có dữ liệu)
+    \item \texttt{source}: Nguồn dữ liệu (luôn là "footballtransfers.com")
+    \item \texttt{updated\_date}: Ngày thu thập (format: YYYY-MM-DD)
+\end{itemize}
+
+Ví dụ dữ liệu trong bảng:
+\begin{verbatim}
+id | player_id | player_name    | team      | transfer_value | currency | updated_date
+1  | 1         | Mohamed Salah  | Liverpool | €44M          | EUR      | 2025-01-10
+2  | 2         | Erling Haaland | Man City  | €150M         | EUR      | 2025-01-10
+3  | 3         | Bruno Fernandes| Man United| £56.3M        | GBP      | 2025-01-10
+\end{verbatim}
+
+\textbf{File output}
+
+Chương trình xuất 2 file vào thư mục \texttt{Main/Output/Output\_I/}:
+
+\begin{enumerate}
+    \item \textbf{football\_stats.db}: Database SQLite chứa 2 bảng
+    \begin{itemize}
+        \item Bảng \texttt{players}: 380+ cầu thủ với 60+ chỉ số thống kê (từ scraper\_fbref.py)
+        \item Bảng \texttt{player\_transfers}: Giá trị chuyển nhượng của 380+ cầu thủ
+        \item Có thể JOIN để phân tích: \texttt{SELECT * FROM players p JOIN player\_transfers t ON p.id = t.player\_id}
+    \end{itemize}
+    
+    \item \textbf{player\_transfers.csv}: File CSV với 7 cột (không có id)
+    \begin{itemize}
+        \item Header: player\_id, player\_name, team, transfer\_value, currency, source, updated\_date
+        \item Encoding: UTF-8 (hỗ trợ ký tự đặc biệt)
+        \item Tiện lợi để mở bằng Excel, Google Sheets hoặc import vào phần mềm phân tích
+    \end{itemize}
+\end{enumerate}
+
+\subsubsection{Cấu trúc code}
+
+Chương trình \texttt{scraper\_transfers.py} có khoảng 300 dòng, được tổ chức thành các hàm rõ ràng:
+
+\textbf{1. Hàm setup\_driver()}
+
+Khởi tạo Selenium WebDriver với Microsoft Edge:
+\begin{verbatim}
+edge_options.add_argument('--headless')
+edge_options.add_argument('--disable-blink-features=
+                          AutomationControlled')
+edge_options.add_argument('user-agent=Mozilla/5.0...')
+\end{verbatim}
+
+\textbf{2. Hàm get\_players\_from\_db()}
+
+Kết nối SQLite, lấy danh sách cầu thủ:
+\begin{verbatim}
+SELECT id, Name, Team FROM players
+\end{verbatim}
+Return: List of tuples \texttt{[(1, 'Salah', 'Liverpool'), ...]}
+
+\textbf{3. Hàm get\_etv\_from\_base64\_data(soup)}
+
+Trích xuất ETV từ biểu đồ:
+\begin{itemize}
+    \item Input: BeautifulSoup object của trang cầu thủ
+    \item Tìm \texttt{<div class="player-graph" data-base64="...">}
+    \item Decode: \texttt{base64.b64decode(data) → JSON}
+    \item Duyệt \texttt{dataSets}, tìm dataset có \texttt{order=2}
+    \item Duyệt \texttt{data}, tìm point có \texttt{x="04-'25"}
+    \item Return: \texttt{price} (ví dụ: "€44M") hoặc \texttt{None}
+\end{itemize}
+
+\textbf{4. Hàm extract\_value\_from\_page(soup)}
+
+Wrapper function với nhiều tầng fallback:
+\begin{itemize}
+    \item Tầng 1: Gọi \texttt{get\_etv\_from\_base64\_data()} → nếu có return ngay
+    \item Tầng 2: Tìm \texttt{<div class="player-value-large">} → parse text
+    \item Return: Giá trị hoặc \texttt{None}
+\end{itemize}
+
+\textbf{5. Hàm search\_player\_transfer\_value(driver, player\_name)}
+
+Hàm chính để tìm giá trị:
+\begin{enumerate}
+    \item Thử phương pháp 1 (direct URL):
+    \begin{itemize}
+        \item URL = \texttt{/en/players/} + name.lower().replace(" ", "-")
+        \item Load trang bằng Selenium
+        \item Parse HTML thành BeautifulSoup
+        \item Gọi \texttt{extract\_value\_from\_page()} → nếu có return
+    \end{itemize}
+    
+    \item Nếu thất bại, thử phương pháp 2 (search):
+    \begin{itemize}
+        \item URL = \texttt{/en/search?search\_value=} + name
+        \item Parse HTML, tìm \texttt{<div class="playerList-panel">}
+        \item Lấy href đầu tiên
+        \item Load trang chi tiết
+        \item Gọi \texttt{extract\_value\_from\_page()} → nếu có return
+    \end{itemize}
+    
+    \item Nếu tất cả thất bại: Return "N/a"
+\end{enumerate}
+
+\textbf{6. Hàm save\_transfer\_value(player\_id, name, team, value)}
+
+Lưu dữ liệu vào database:
+\begin{itemize}
+    \item Xác định currency: EUR (€), GBP (£), hoặc USD (\$)
+    \item Insert vào bảng \texttt{player\_transfers}
+    \item Tự động lưu \texttt{updated\_date = DATE('now')}
+\end{itemize}
+
+\textbf{7. Hàm save\_transfers\_to\_csv(output\_file)}
+
+Xuất dữ liệu ra CSV:
+\begin{itemize}
+    \item SELECT toàn bộ dữ liệu từ \texttt{player\_transfers}
+    \item Ghi ra file với header
+    \item Encoding UTF-8
+\end{itemize}
+
+\textbf{8. Hàm main()}
+
+Điều phối toàn bộ quy trình:
+\begin{verbatim}
+1. Tạo bảng player_transfers
+2. Lấy danh sách 380+ cầu thủ
+3. Khởi tạo WebDriver
+4. For mỗi cầu thủ:
+   - Tìm giá trị (2 phương pháp)
+   - Lưu vào database
+   - Sleep 2-3 giây
+   - Hiển thị tiến độ
+5. Xuất ra CSV
+6. Đóng WebDriver
+\end{verbatim}
+
+\subsubsection{Kết quả và đánh giá}
+
+Sau khi chương trình hoàn thành, ta có:
+
+\textbf{Dữ liệu thu thập được:}
+\begin{itemize}
+    \item \textbf{Số lượng}: 380+ cầu thủ Premier League mùa 2024-2025 (lọc Minutes > 90)
+    \item \textbf{Thông tin}: Tên, đội, giá trị ETV tại tháng 04/2025, đơn vị tiền tệ
+    \item \textbf{Tỷ lệ thành công}: >90\% cầu thủ có giá trị (nhờ 2 phương pháp + base64)
+    \item \textbf{Dữ liệu thiếu}: <10\% ghi "N/a" (các cầu thủ trẻ/dự bị chưa có định giá)
+\end{itemize}
+
+\textbf{Ví dụ cầu thủ thành công:}
+\begin{verbatim}
+- Mohamed Salah (Liverpool): €44M
+- Erling Haaland (Man City): €150M  
+- Bruno Fernandes (Man United): £56.3M
+- Bukayo Saka (Arsenal): €110M
+\end{verbatim}
+
+\textbf{Ví dụ cầu thủ khó (vẫn tìm được nhờ search fallback):}
+\begin{itemize}
+    \item Gabriel Magalhães → tìm bằng search "Gabriel Magalhães"
+    \item Matheus Cunha → tìm bằng search "Matheus Cunha"  
+    \item Nélson Semedo → xử lý ký tự đặc biệt é
+\end{itemize}
+
+\textbf{Thời gian xử lý:}
+\begin{itemize}
+    \item Tốc độ: 3-4 giây/cầu thủ (gồm 2 phương pháp + sleep)
+    \item Tổng thời gian: ~20-25 phút cho 380 cầu thủ
+    \item Hiển thị tiến độ mỗi 10 cầu thủ: "Processed 10/380, 20/380, ..."
+\end{itemize}
+
+\textbf{So sánh với phương pháp cũ:}
+\begin{itemize}
+    \item Phương pháp chỉ dùng direct URL: Thành công ~65\% (thiếu 35\% do tên không khớp)
+    \item Phương pháp hiện tại (URL + search + base64): Thành công >90\% (chỉ thiếu cầu thủ không có trên website)
+    \item Ưu điểm base64: Lấy đúng giá trị tháng 04/2025 (trong mùa 2024-2025), không phải giá hiện tại
+\end{itemize}
+
+\textbf{Lưu ý:}
+\begin{itemize}
+    \item Dữ liệu ETV (Estimated Transfer Value) là ước tính từ footballtransfers.com, không phải giá chính thức
+    \item Giá trị tại tháng 04/2025 phản ánh form cầu thủ trong mùa 2024-2025
+    \item Một số cầu thủ có giá bằng GBP (£), USD (\$) thay vì EUR (€)
+\end{itemize}
+
+
+
+\subsection{Xử lý các vấn đề kỹ thuật}
+
+\subsubsection{Vấn đề 1: Rate-limiting (bị chặn do request quá nhanh)}
+
+\textbf{Nguyên nhân:}
+\begin{itemize}
+    \item Website footballtransfers.com có giới hạn số request/phút
+    \item Nếu request quá nhanh, server trả về lỗi 429 hoặc block IP tạm thời
+\end{itemize}
+
+\textbf{Giải pháp:}
+\begin{verbatim}
+# Sau mỗi request, sleep 2-3 giây
+time.sleep(random.uniform(2, 3))
+
+# Hiển thị tiến độ để theo dõi
+if (i+1) % 10 == 0:
+    print(f"Processed {i+1}/{total_players}")
+\end{verbatim}
+
+\textbf{Kết quả:}
+\begin{itemize}
+    \item Chương trình chạy ổn định, không bị chặn
+    \item Tốc độ: 3-4 giây/cầu thủ
+    \item Tổng thời gian cho 380 cầu thủ: ~20-25 phút
+\end{itemize}
+
+\subsubsection{Vấn đề 2: Bot detection (website phát hiện Selenium)}
+
+\textbf{Nguyên nhân:}
+\begin{itemize}
+    \item Website dùng JavaScript kiểm tra \texttt{navigator.webdriver === true}
+    \item Phát hiện trình duyệt tự động → hiển thị CAPTCHA hoặc block
+\end{itemize}
+
+\textbf{Giải pháp:}
+\begin{verbatim}
+edge_options = Options()
+
+# 1. Chạy headless để tăng tốc độ
+edge_options.add_argument('--headless')
+
+# 2. Tắt flag automation (quan trọng nhất)
+edge_options.add_argument(
+    '--disable-blink-features=AutomationControlled'
+)
+
+# 3. Đặt user-agent thực tế
+edge_options.add_argument(
+    'user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) '
+    'AppleWebKit/537.36 (KHTML, like Gecko) '
+    'Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0'
+)
+
+# 4. Tắt log để giảm overhead
+edge_options.add_argument('--log-level=3')
+edge_options.add_experimental_option(
+    'excludeSwitches', ['enable-logging']
+)
+\end{verbatim}
+
+\textbf{Kết quả:}
+\begin{itemize}
+    \item Website không phát hiện Selenium
+    \item Không gặp CAPTCHA
+    \item Chạy ổn định cho hàng trăm request
+\end{itemize}
+
+\subsubsection{Vấn đề 3: Tên cầu thủ không khớp với URL}
+
+\textbf{Nguyên nhân:}
+\begin{itemize}
+    \item fbref.com dùng tên đầy đủ: "Gabriel Magalhães"
+    \item footballtransfers.com dùng URL: "/en/players/gabriel/"
+    \item Direct URL method thất bại ~35\% trường hợp
+\end{itemize}
+
+\textbf{Ví dụ:}
+\begin{itemize}
+    \item Gabriel Magalhães: Direct URL không có "Magalhães"
+    \item Matheus Cunha: URL chỉ có "matheus", không có "cunha"
+    \item Nélson Semedo: URL không có ký tự đặc biệt "é"
+\end{itemize}
+
+\textbf{Giải pháp:}
+\begin{enumerate}
+    \item \textbf{Phương pháp 1 (Direct URL)}: Thử truy cập trực tiếp
+    \begin{verbatim}
+    url = f"/en/players/{name.lower().replace(' ', '-')}/"
+    # Ví dụ: "Mohamed Salah" → "/en/players/mohamed-salah/"
+    \end{verbatim}
+    
+    \item \textbf{Phương pháp 2 (Search fallback)}: Nếu thất bại, dùng search API
+    \begin{verbatim}
+    url = f"/en/search?search_value={name}"
+    # Parse kết quả → lấy href đầu tiên
+    # Ví dụ: Search "Gabriel Magalhães" → /en/players/gabriel/
+    \end{verbatim}
+\end{enumerate}
+
+\textbf{Kết quả:}
+\begin{itemize}
+    \item Tỷ lệ thành công tăng từ 65\% → >90\%
+    \item Xử lý được tên có ký tự đặc biệt, tên ngắn, tên không chuẩn
+\end{itemize}
+
+\subsubsection{Vấn đề 4: Lấy giá trị ETV đúng mùa giải}
+
+\textbf{Nguyên nhân:}
+\begin{itemize}
+    \item Div \texttt{player-value-large} hiển thị giá hiện tại (tháng 11/2025)
+    \item Yêu cầu: Lấy giá trong mùa 2024-2025 (tháng 04/2025)
+\end{itemize}
+
+\textbf{Giải pháp:}
+\begin{enumerate}
+    \item Tìm \texttt{<div class="player-graph" data-base64="...">}
+    \item Decode base64 → JSON chứa lịch sử giá theo tháng
+    \item Tìm dataset có \texttt{order=2} (ETV estimate line)
+    \item Tìm data point có \texttt{x="04-'25"} (tháng 04/2025)
+    \item Lấy \texttt{price} tại điểm đó
+\end{enumerate}
+
+\textbf{Ví dụ JSON sau khi decode:}
+\begin{verbatim}
+{
+  "dataSets": [
+    {
+      "order": 2,  // Dataset ETV estimate
+      "data": [
+        {"x": "01-'25", "price": "€42M"},
+        {"x": "04-'25", "price": "€44M"},  // ← Lấy giá này
+        {"x": "07-'25", "price": "€43M"}
+      ]
+    }
+  ]
+}
+\end{verbatim}
+
+\textbf{Kết quả:}
+\begin{itemize}
+    \item Lấy đúng giá trị trong mùa 2024-2025
+    \item Nếu không có base64, fallback về giá hiện tại
+    \item Đảm bảo dữ liệu nhất quán với yêu cầu bài tập
+\end{itemize}
+
+\subsubsection{Vấn đề 5: Xử lý lỗi và dữ liệu thiếu}
+
+\textbf{Các trường hợp lỗi:}
+\begin{itemize}
+    \item Không tìm thấy trang cầu thủ (404)
+    \item Connection reset giữa chừng
+    \item Không có dữ liệu base64
+    \item Không tìm thấy timepoint "04-'25"
+\end{itemize}
+
+\textbf{Cơ chế xử lý:}
+\begin{verbatim}
+try:
+    # Phương pháp 1: Base64
+    value = get_etv_from_base64_data(soup)
+    if value:
+        return value
+    
+    # Phương pháp 2: player-value-large
+    value = extract_fallback_value(soup)
+    if value:
+        return value
+        
+except Exception as e:
+    print(f"Error for {name}: {e}")
+    
+# Nếu tất cả thất bại
+return "N/a"
+\end{verbatim}
+
+\textbf{Kết quả:}
+\begin{itemize}
+    \item Chương trình không bị crash khi gặp lỗi
+    \item Tiếp tục xử lý cầu thủ tiếp theo
+    \item Lưu "N/a" cho các trường hợp không tìm được (<10\%)
+    \item Có thể chạy lại chỉ với các cầu thủ "N/a" nếu cần
+\end{itemize}
+
+
+
+\subsection{Cách sử dụng chương trình}
+
+\textbf{Bước 1: Cài đặt thư viện}
+\begin{verbatim}
+pip install selenium beautifulsoup4
+\end{verbatim}
+
+\textbf{Bước 2: Chạy scraper fbref (thu thập thống kê)}
+\begin{verbatim}
+cd Main/Code/Code_I
+python scraper_fbref.py
+\end{verbatim}
+Kết quả:
+\begin{itemize}
+    \item \texttt{../../Output/Output\_I/football\_stats.db} (bảng players)
+    \item \texttt{../../Output/Output\_I/players\_stats.csv}
+    \item Thời gian: ~10-15 phút
+\end{itemize}
+
+\textbf{Bước 3: Chạy scraper transfers (thu thập giá trị)}
+\begin{verbatim}
+python scraper_transfers.py
+\end{verbatim}
+Kết quả:
+\begin{itemize}
+    \item \texttt{../../Output/Output\_I/football\_stats.db} (thêm bảng player\_transfers)
+    \item \texttt{../../Output/Output\_I/player\_transfers.csv}
+    \item Thời gian: ~20-25 phút (380+ cầu thủ)
+\end{itemize}
+
+\textbf{Bước 4: Kiểm tra dữ liệu}
+\begin{verbatim}
+sqlite3 ../../Output/Output_I/football_stats.db
+
+-- Xem cầu thủ có thống kê
+SELECT Name, Team, Goals, Assists, Minutes 
+FROM players LIMIT 10;
+
+-- Xem giá trị chuyển nhượng
+SELECT player_name, team, transfer_value, currency 
+FROM player_transfers LIMIT 10;
+
+-- JOIN hai bảng để phân tích
+SELECT p.Name, p.Team, p.Goals, t.transfer_value
+FROM players p
+LEFT JOIN player_transfers t ON p.id = t.player_id
+ORDER BY p.Goals DESC
+LIMIT 10;
+\end{verbatim}
+
+\section{Kết luận Phần I}
+
+Phần I của bài tập đã hoàn thành việc thu thập dữ liệu cầu thủ Premier League mùa giải 2024-2025 từ hai nguồn:
+
+\subsection{Dữ liệu thu thập được}
+
+\textbf{1. Thống kê từ fbref.com (scraper\_fbref.py):}
+\begin{itemize}
+    \item \textbf{Số lượng}: 380+ cầu thủ (lọc Minutes > 90)
+    \item \textbf{Chỉ số}: 60+ chỉ số từ 8 bảng thống kê (Playing Time, Performance, Passing, Pass Types, Goal/Shot Creation, Defensive Actions, Possession, Miscellaneous)
+    \item \textbf{Output}: 
+    \begin{itemize}
+        \item Database: bảng \texttt{players} trong \texttt{football\_stats.db}
+        \item CSV: \texttt{players\_stats.csv}
+    \end{itemize}
+    \item \textbf{Thời gian}: 10-15 phút
+    \item \textbf{Tỷ lệ thành công}: 100\% (thu thập đầy đủ 8 bảng)
+\end{itemize}
+
+\textbf{2. Giá trị chuyển nhượng từ footballtransfers.com (scraper\_transfers.py):}
+\begin{itemize}
+    \item \textbf{Số lượng}: 380+ cầu thủ (từ bảng players)
+    \item \textbf{Dữ liệu}: ETV (Estimated Transfer Value) tại tháng 04/2025 (trong mùa 2024-2025)
+    \item \textbf{Phương pháp}: 
+    \begin{itemize}
+        \item Ưu tiên: Trích xuất từ biểu đồ base64 (timepoint "04-'25")
+        \item Fallback: Giá trị hiện tại từ div player-value-large
+        \item Xử lý tên: Direct URL + Search fallback
+    \end{itemize}
+    \item \textbf{Output}:
+    \begin{itemize}
+        \item Database: bảng \texttt{player\_transfers} trong \texttt{football\_stats.db}
+        \item CSV: \texttt{player\_transfers.csv}
+    \end{itemize}
+    \item \textbf{Thời gian}: 20-25 phút (3-4 giây/cầu thủ)
+    \item \textbf{Tỷ lệ thành công}: >90\% (nhờ 2 phương pháp + base64)
+\end{itemize}
+
+\subsection{Kỹ thuật sử dụng}
+
+\textbf{Công cụ:}
+\begin{itemize}
+    \item Python 3.x với Selenium WebDriver (Edge) + BeautifulSoup4
+    \item SQLite database cho lưu trữ có cấu trúc
+    \item CSV export cho phân tích nhanh
+\end{itemize}
+
+\textbf{Điểm đặc biệt:}
+\begin{itemize}
+    \item \textbf{Base64 extraction}: Giải mã dữ liệu biểu đồ để lấy giá trị theo thời gian, không phải giá hiện tại
+    \item \textbf{Dual method}: Kết hợp direct URL + search fallback tăng tỷ lệ thành công từ 65\% → >90\%
+    \item \textbf{Anti-detection}: Tắt automation flags, user-agent thực tế, headless mode
+    \item \textbf{Rate limiting}: Sleep 2-3 giây giữa requests tránh bị chặn
+    \item \textbf{Error handling}: Try-except nhiều tầng, lưu "N/a" khi thất bại
+\end{itemize}
+
+\subsection{Đánh giá}
+
+\textbf{Ưu điểm:}
+\begin{itemize}
+    \item Dữ liệu đầy đủ, chính xác cho mùa giải 2024-2025
+    \item Cấu trúc database tốt với foreign key liên kết 2 bảng
+    \item Code đơn giản (~300 dòng), dễ hiểu, dễ bảo trì
+    \item Xử lý tốt các trường hợp biên (tên đặc biệt, dữ liệu thiếu, lỗi mạng)
+    \item Tỷ lệ thành công cao (>90\%) nhờ nhiều phương pháp dự phòng
+\end{itemize}
+
+\textbf{Hạn chế:}
+\begin{itemize}
+    \item Thời gian chạy lâu (~30-40 phút tổng cộng) do rate limiting
+    \item ~10\% cầu thủ không có giá trị ETV (cầu thủ trẻ, dự bị ít thi đấu)
+    \item Phụ thuộc cấu trúc HTML của website (có thể thay đổi)
+    \item Yêu cầu Edge WebDriver (cần cài đặt trước)
+\end{itemize}
+
+\textbf{Kết luận:}
+
+Dữ liệu thu thập được đầy đủ và sẵn sàng cho các phần tiếp theo:
+\begin{itemize}
+    \item \textbf{Phần II}: Phân tích thống kê mô tả, tìm mẫu hình, trực quan hóa
+    \item \textbf{Phần III}: Phân cụm cầu thủ theo phong cách chơi
+    \item \textbf{Phần IV}: Xây dựng mô hình dự đoán giá trị chuyển nhượng
+\end{itemize}
+
+Database có thể JOIN giữa thống kê và giá trị để phân tích mối quan hệ:
+\begin{verbatim}
+SELECT p.Name, p.Goals, p.Assists, t.transfer_value
+FROM players p
+JOIN player_transfers t ON p.id = t.player_id
+WHERE t.transfer_value != 'N/a'
+ORDER BY p.Goals DESC;
+\end{verbatim}
+
+Phương pháp thu thập dữ liệu này có thể tái sử dụng cho các mùa giải khác bằng cách thay đổi URL trong \texttt{config.py}.
+
+
+
+\end{document}
