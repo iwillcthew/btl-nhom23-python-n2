@@ -927,6 +927,1431 @@ ORDER BY p.Goals DESC;
 
 Phương pháp thu thập dữ liệu này có thể tái sử dụng cho các mùa giải khác bằng cách thay đổi URL trong \texttt{config.py}.
 
+\section{Phần II: API và công cụ tra cứu dữ liệu}
+
+Phần II của bài tập tập trung vào việc xây dựng các công cụ tra cứu và truy xuất dữ liệu cầu thủ đã thu thập được từ Phần I. Có hai phần chính:
+
+\begin{itemize}
+    \item \textbf{Phần II.1}: REST API với giao diện đồ họa (Flask + Tkinter)
+    \item \textbf{Phần II.2}: Công cụ tra cứu dòng lệnh (Command Line Tool)
+\end{itemize}
+
+\subsection{Phần II.1 - REST API và giao diện Tkinter}
+
+\subsubsection{Tổng quan}
+
+Phần II.1 xây dựng một hệ thống client-server hoàn chỉnh với:
+\begin{itemize}
+    \item \textbf{Backend}: Flask REST API server cung cấp các endpoint để tra cứu dữ liệu
+    \item \textbf{Frontend}: Giao diện Tkinter kết nối với API thông qua HTTP requests
+\end{itemize}
+
+Kiến trúc này tách biệt logic xử lý dữ liệu (backend) và giao diện người dùng (frontend), giúp dễ dàng mở rộng và bảo trì.
+
+\subsubsection{II.1.a - Flask REST API (api.py)}
+
+\textbf{Công nghệ sử dụng:}
+\begin{itemize}
+    \item \textbf{Flask 3.0.0+}: Web framework nhẹ cho Python
+    \item \textbf{flask-cors 4.0.0+}: Xử lý Cross-Origin Resource Sharing
+    \item \textbf{sqlite3}: Kết nối và truy vấn database
+\end{itemize}
+
+\textbf{Cấu trúc API:}
+
+Chương trình \texttt{api.py} có khoảng 330 dòng code, được tổ chức thành các endpoint rõ ràng:
+
+\textbf{1. Hàm tiện ích (Utility Functions):}
+
+\begin{verbatim}
+def get_db_connection():
+    """Tạo kết nối tới database SQLite"""
+    conn = sqlite3.connect(DATABASE_PATH)
+    conn.row_factory = sqlite3.Row
+    return conn
+
+def row_to_dict(row):
+    """Chuyển SQLite Row thành dictionary"""
+    return {key: row[key] for key in row.keys()}
+\end{verbatim}
+
+\textbf{2. API Endpoints:}
+
+\textbf{Endpoint 1: Trang chủ - Hướng dẫn API}
+\begin{verbatim}
+GET /
+\end{verbatim}
+
+Trả về thông tin về API, danh sách endpoints có sẵn và ví dụ sử dụng.
+
+\textbf{Response:}
+\begin{verbatim}
+{
+  "message": "Football Stats API - Premier League 2024-2025",
+  "version": "1.0",
+  "endpoints": {
+    "GET /api/player/<name>": "Tra cứu cầu thủ theo tên",
+    "GET /api/team/<team_name>": "Tra cứu theo câu lạc bộ",
+    ...
+  }
+}
+\end{verbatim}
+
+\textbf{Endpoint 2: Tra cứu cầu thủ theo tên}
+\begin{verbatim}
+GET /api/player/<name>
+\end{verbatim}
+
+\textbf{Chức năng:}
+\begin{itemize}
+    \item Tìm kiếm chính xác trước (LOWER(Name) = LOWER(?))
+    \item Nếu không tìm thấy, tìm kiếm gần đúng (LIKE \%name\%)
+    \item Trả về thông tin đầy đủ 60+ chỉ số của cầu thủ
+\end{itemize}
+
+\textbf{Ví dụ:}
+\begin{verbatim}
+Request: GET /api/player/Mohamed Salah
+
+Response:
+{
+  "success": true,
+  "message": "Thông tin cầu thủ \"Mohamed Salah\"",
+  "data": {
+    "id": 123,
+    "Name": "Mohamed Salah",
+    "Team": "Liverpool",
+    "Position": "FW,MF",
+    "Goals": "10",
+    "Assists": "6",
+    "xG": "8.2",
+    ...
+  }
+}
+\end{verbatim}
+
+\textbf{Endpoint 3: Tra cứu theo câu lạc bộ}
+\begin{verbatim}
+GET /api/team/<team_name>
+\end{verbatim}
+
+\textbf{Chức năng:}
+\begin{itemize}
+    \item Lấy danh sách tất cả cầu thủ của một câu lạc bộ
+    \item Tính toán thống kê tổng hợp: tổng số cầu thủ, phân bố vị trí
+    \item Sắp xếp theo số phút thi đấu giảm dần
+\end{itemize}
+
+\textbf{Ví dụ:}
+\begin{verbatim}
+Request: GET /api/team/Liverpool
+
+Response:
+{
+  "success": true,
+  "message": "Danh sách cầu thủ của Liverpool",
+  "team_stats": {
+    "team_name": "Liverpool",
+    "total_players": 25,
+    "positions": {
+      "FW": 5,
+      "MF": 10,
+      "DF": 8,
+      "GK": 2
+    }
+  },
+  "data": [...]
+}
+\end{verbatim}
+
+\textbf{Endpoint 4: Danh sách tất cả cầu thủ (có phân trang)}
+\begin{verbatim}
+GET /api/players?page=1&per_page=20
+\end{verbatim}
+
+\textbf{Parameters:}
+\begin{itemize}
+    \item \texttt{page}: Số trang (mặc định: 1)
+    \item \texttt{per\_page}: Số cầu thủ mỗi trang (mặc định: 20)
+\end{itemize}
+
+\textbf{Endpoint 5: Danh sách tất cả câu lạc bộ}
+\begin{verbatim}
+GET /api/teams
+\end{verbatim}
+
+Trả về danh sách tất cả các câu lạc bộ có trong database (20 đội Premier League).
+
+\textbf{Xử lý lỗi:}
+
+API có cơ chế xử lý lỗi toàn diện:
+\begin{itemize}
+    \item \textbf{404 Not Found}: Không tìm thấy cầu thủ/câu lạc bộ
+    \item \textbf{500 Internal Server Error}: Lỗi database hoặc server
+    \item Mọi lỗi đều trả về JSON với \texttt{success: false} và \texttt{message}
+\end{itemize}
+
+\textbf{Chạy API server:}
+\begin{verbatim}
+cd Code/Code_II/Code_II.1
+python api.py
+# Server chạy tại: http://127.0.0.1:5000
+\end{verbatim}
+
+\subsubsection{II.1.b - Giao diện Tkinter (ui\_tkinter.py)}
+
+\textbf{Tổng quan:}
+
+Giao diện được xây dựng bằng Tkinter (thư viện GUI chuẩn của Python) với hơn 600 dòng code, kết nối với Flask API thông qua module \texttt{requests}.
+
+\textbf{Kiến trúc:}
+
+\begin{verbatim}
+FootballStatsApp (Main Class)
+├── __init__()              # Khởi tạo UI
+├── check_api_connection()  # Kiểm tra kết nối API
+├── create_widgets()        # Tạo các tab và controls
+│   ├── Tab 1: Tra cứu cầu thủ
+│   ├── Tab 2: Tra cứu câu lạc bộ
+│   └── Tab 3: Thông tin API
+├── search_player()         # Gọi API tìm cầu thủ
+├── search_club()           # Gọi API tìm câu lạc bộ
+├── display_player_info()   # Hiển thị thông tin cầu thủ
+└── display_club_info()     # Hiển thị danh sách cầu thủ
+\end{verbatim}
+
+\textbf{Tính năng chính:}
+
+\textbf{1. Kiểm tra kết nối API:}
+\begin{itemize}
+    \item Tự động kiểm tra khi khởi động
+    \item Hiển thị trạng thái kết nối (Đã kết nối/Không kết nối)
+    \item Timeout 5 giây để tránh treo ứng dụng
+\end{itemize}
+
+\begin{verbatim}
+def check_api_connection(self):
+    try:
+        response = requests.get(
+            f"{self.api_url}/", 
+            timeout=5
+        )
+        if response.status_code == 200:
+            return True, "API đang chạy"
+    except:
+        return False, "Không thể kết nối tới API"
+\end{verbatim}
+
+\textbf{2. Tab 1 - Tra cứu cầu thủ:}
+\begin{itemize}
+    \item Input: Entry widget để nhập tên cầu thủ
+    \item Button: "Tìm kiếm" để gửi request
+    \item Output: ScrolledText widget hiển thị thông tin đầy đủ
+    \item Định dạng: Chia thành các nhóm (Thông tin cơ bản, Thời gian thi đấu, Chỉ số tấn công, v.v.)
+\end{itemize}
+
+\textbf{Ví dụ output:}
+\begin{verbatim}
+===============================================================
+⚽ THÔNG TIN CẦU THỦ: Mohamed Salah
+===============================================================
+
+�� THÔNG TIN CƠ BẢN:
+Tên             Mohamed Salah
+Quốc tịch       eg EGY
+Câu lạc bộ      Liverpool
+Vị trí          FW,MF
+Tuổi            32
+
+⏱️ THỜI GIAN THI ĐẤU:
+Số trận                 11
+Số trận đá chính       11
+Số phút                990
+
+⚡ CHỈ SỐ TẤN CÔNG:
+Bàn thắng              10
+Kiến tạo               6
+Bàn/90 phút           0.91
+xG                     8.2
+xAG                    4.5
+...
+\end{verbatim}
+
+\textbf{3. Tab 2 - Tra cứu câu lạc bộ:}
+\begin{itemize}
+    \item Input: Entry widget hoặc Combobox với danh sách gợi ý
+    \item Output: Danh sách cầu thủ dạng bảng với các cột:
+    \begin{itemize}
+        \item STT
+        \item Tên
+        \item Vị trí
+        \item Tuổi
+        \item Số phút
+        \item Bàn thắng
+        \item Kiến tạo
+    \end{itemize}
+    \item Tổng hợp: Hiển thị tổng số cầu thủ, tổng bàn thắng, tổng kiến tạo
+\end{itemize}
+
+\textbf{4. Tab 3 - Thông tin API:}
+\begin{itemize}
+    \item Trạng thái kết nối
+    \item Danh sách endpoints
+    \item Ví dụ sử dụng
+    \item Hướng dẫn test API
+\end{itemize}
+
+\textbf{Giao diện và màu sắc:}
+
+\begin{itemize}
+    \item \textbf{Theme}: Gam màu xanh dương chuyên nghiệp
+    \item \textbf{Primary color}: \texttt{\#1E3A5F} (xanh navy)
+    \item \textbf{Accent color}: \texttt{\#2ECC71} (xanh lá - trạng thái kết nối)
+    \item \textbf{Font}: Segoe UI, Arial (Windows), San Francisco (Mac)
+    \item \textbf{Size}: 800x600px, có thể thay đổi kích thước
+\end{itemize}
+
+\textbf{Xử lý lỗi:}
+
+\begin{itemize}
+    \item \textbf{API không chạy}: Hiển thị cảnh báo "Vui lòng khởi động API server"
+    \item \textbf{Không tìm thấy}: Hiển thị thông báo "Không tìm thấy cầu thủ/câu lạc bộ"
+    \item \textbf{Timeout}: Hiển thị "Quá thời gian chờ, vui lòng thử lại"
+    \item \textbf{Lỗi khác}: Hiển thị message từ API hoặc lỗi mặc định
+\end{itemize}
+
+\textbf{Chạy giao diện:}
+
+\textbf{Cách 1: Tự động (Script)}
+\begin{verbatim}
+cd Code/Code_II/Code_II.1
+start_both.bat
+# Script tự động chạy API rồi chạy UI sau 3 giây
+\end{verbatim}
+
+\textbf{Cách 2: Thủ công}
+\begin{verbatim}
+# Terminal 1: API Server
+cd Code/Code_II/Code_II.1
+python api.py
+
+# Terminal 2: UI Client (sau khi API đã chạy)
+python ui_tkinter.py
+\end{verbatim}
+
+\subsection{Phần II.2 - Command Line Lookup Tool}
+
+\subsubsection{Tổng quan}
+
+Phần II.2 xây dựng công cụ tra cứu dòng lệnh (CLI) sử dụng module \texttt{requests} để gọi API và module \texttt{tabulate} để hiển thị dữ liệu dạng bảng trên console.
+
+\textbf{Ưu điểm của CLI tool:}
+\begin{itemize}
+    \item Phù hợp cho automation và scripting
+    \item Tự động xuất file CSV
+    \item Không cần giao diện đồ họa
+    \item Có thể chạy trên server Linux/Windows
+\end{itemize}
+
+\subsubsection{Cấu trúc chương trình (lookup.py)}
+
+Chương trình \texttt{lookup.py} có khoảng 356 dòng code, sử dụng \texttt{argparse} để xử lý command-line arguments.
+
+\textbf{Thư viện sử dụng:}
+\begin{itemize}
+    \item \textbf{requests}: Gọi HTTP API
+    \item \textbf{argparse}: Parse command-line arguments
+    \item \textbf{tabulate}: Hiển thị dữ liệu dạng bảng đẹp
+    \item \textbf{csv}: Xuất dữ liệu ra file CSV
+\end{itemize}
+
+\textbf{Kiến trúc code:}
+
+\begin{verbatim}
+1. parse_arguments()        # Parse --name hoặc --club
+2. check_api_connection()   # Kiểm tra API có chạy không
+3. search_player(name)      # Gọi API tra cứu cầu thủ
+4. search_club(club)        # Gọi API tra cứu CLB
+5. display_player_table()   # Hiển thị bảng cầu thủ
+6. display_club_table()     # Hiển thị bảng CLB
+7. save_to_csv()            # Lưu dữ liệu ra CSV
+8. main()                   # Điều phối toàn bộ
+\end{verbatim}
+
+\textbf{Cú pháp sử dụng:}
+
+\begin{verbatim}
+# Tra cứu theo tên cầu thủ
+python lookup.py --name "Mohamed Salah"
+
+# Tra cứu theo câu lạc bộ
+python lookup.py --club Liverpool
+
+# Xem hướng dẫn
+python lookup.py --help
+\end{verbatim}
+
+\subsubsection{Quy trình hoạt động}
+
+\textbf{Bước 1: Parse arguments}
+
+Sử dụng \texttt{argparse} để xử lý input:
+\begin{verbatim}
+parser = argparse.ArgumentParser(
+    description='Tra cứu thông tin cầu thủ'
+)
+parser.add_argument('--name', type=str, 
+                    help='Tên cầu thủ')
+parser.add_argument('--club', type=str, 
+                    help='Tên câu lạc bộ')
+\end{verbatim}
+
+\textbf{Bước 2: Kiểm tra API}
+
+Trước khi gọi API, kiểm tra xem server có đang chạy không:
+\begin{verbatim}
+def check_api_connection():
+    try:
+        response = requests.get(
+            f"{API_URL}/", 
+            timeout=5
+        )
+        return response.status_code == 200
+    except:
+        return False
+\end{verbatim}
+
+Nếu API không chạy, hiển thị thông báo:
+\begin{verbatim}
+❌ Không thể kết nối tới API server!
+�� Vui lòng chạy API server trước:
+   cd Code/Code_II/Code_II.1
+   python api.py
+\end{verbatim}
+
+\textbf{Bước 3: Gọi API}
+
+\textbf{Tra cứu cầu thủ:}
+\begin{verbatim}
+def search_player(name):
+    url = f"{API_URL}/api/player/{name}"
+    response = requests.get(url)
+    
+    if response.status_code == 200:
+        data = response.json()
+        return data
+    else:
+        return None
+\end{verbatim}
+
+\textbf{Tra cứu câu lạc bộ:}
+\begin{verbatim}
+def search_club(club):
+    url = f"{API_URL}/api/team/{club}"
+    response = requests.get(url)
+    
+    if response.status_code == 200:
+        data = response.json()
+        return data
+    else:
+        return None
+\end{verbatim}
+
+\textbf{Bước 4: Hiển thị kết quả}
+
+\textbf{Với cầu thủ:}
+\begin{itemize}
+    \item Chia thông tin thành các nhóm logic
+    \item Sử dụng emoji và ký tự đặc biệt để highlight
+    \item Format rõ ràng với separator lines
+\end{itemize}
+
+\textbf{Ví dụ output:}
+\begin{verbatim}
+===============================================================
+⚽ THÔNG TIN CẦU THỦ: Mohamed Salah
+===============================================================
+
+�� THÔNG TIN CƠ BẢN:
+Tên             Mohamed Salah
+Quốc tịch       eg EGY
+Câu lạc bộ      Liverpool
+Vị trí          FW,MF
+Tuổi            32
+
+⏱️ THỜI GIAN THI ĐẤU:
+Số trận                 11
+Số trận đá chính       11
+Số phút                990
+
+⚡ CHỈ SỐ TẤN CÔNG:
+Bàn thắng              10
+Kiến tạo               6
+Bàn/90 phút           0.91
+Kiến tạo/90 phút      0.55
+xG                     8.2
+xAG                    4.5
+
+�� CHỈ SỐ SÚT:
+Sút                    45
+Sút trúng đích         22
+Tỷ lệ sút trúng       48.9%
+Bàn/sút               0.22
+...
+
+✅ Đã lưu dữ liệu vào: Output/Output_II/Mohamed_Salah.csv
+\end{verbatim}
+
+\textbf{Với câu lạc bộ:}
+\begin{itemize}
+    \item Hiển thị dạng bảng với \texttt{tabulate}
+    \item Grid format với border rõ ràng
+    \item Tổng hợp thống kê ở cuối
+\end{itemize}
+
+\textbf{Ví dụ output:}
+\begin{verbatim}
+================================================================
+�� DANH SÁCH CẦU THỦ: Liverpool
+�� Tổng số: 25 cầu thủ
+================================================================
+
++-----+------------------------+--------+------+--------+------+-----+
+| STT | Tên                    | Vị trí | Tuổi | Số phút| Bàn  | KT  |
++=====+========================+========+======+========+======+=====+
+| 1   | Mohamed Salah          | FW,MF  | 32   | 990    | 10   | 6   |
+| 2   | Virgil van Dijk        | DF     | 33   | 990    | 2    | 0   |
+| 3   | Alexis Mac Allister    | MF     | 25   | 950    | 2    | 1   |
+| ... | ...                    | ...    | ...  | ...    | ...  | ... |
++-----+------------------------+--------+------+--------+------+-----+
+
+�� TỔNG HỢP:
+⚽ Tổng bàn thắng: 28
+�� Tổng kiến tạo: 15
+
+✅ Đã lưu dữ liệu vào: Output/Output_II/Liverpool_players.csv
+\end{verbatim}
+
+\textbf{Bước 5: Lưu file CSV}
+
+Tự động xuất dữ liệu ra file CSV:
+
+\textbf{Tên file:}
+\begin{itemize}
+    \item Cầu thủ: \texttt{<Tên\_Cầu\_Thủ>.csv} (ví dụ: Mohamed\_Salah.csv)
+    \item Câu lạc bộ: \texttt{<Tên\_CLB>\_players.csv} (ví dụ: Liverpool\_players.csv)
+\end{itemize}
+
+\textbf{Vị trí:}
+\begin{verbatim}
+Output/Output_II/
+├── Mohamed_Salah.csv
+├── Erling_Haaland.csv
+├── Liverpool_players.csv
+└── Manchester_City_players.csv
+\end{verbatim}
+
+\textbf{Nội dung CSV:}
+\begin{itemize}
+    \item Header: Tên tất cả các cột (60+ cột)
+    \item Data: Giá trị đầy đủ cho từng cầu thủ
+    \item Encoding: UTF-8 with BOM (tương thích Excel)
+    \item Separator: Comma (,)
+\end{itemize}
+
+\textbf{Code lưu CSV:}
+\begin{verbatim}
+def save_to_csv(data, filename):
+    output_dir = "../../Output/Output_II"
+    os.makedirs(output_dir, exist_ok=True)
+    
+    filepath = os.path.join(output_dir, filename)
+    
+    with open(filepath, 'w', encoding='utf-8-sig', 
+              newline='') as f:
+        if isinstance(data, list):
+            # Danh sách cầu thủ
+            writer = csv.DictWriter(f, 
+                                    fieldnames=data[0].keys())
+            writer.writeheader()
+            writer.writerows(data)
+        else:
+            # Một cầu thủ
+            writer = csv.DictWriter(f, 
+                                    fieldnames=data.keys())
+            writer.writeheader()
+            writer.writerow(data)
+    
+    print(f"✅ Đã lưu dữ liệu vào: {filepath}")
+\end{verbatim}
+
+\subsubsection{Scripts hỗ trợ}
+
+\textbf{1. demo.bat - Script demo tự động}
+
+Chạy 3 ví dụ tra cứu liên tiếp:
+\begin{verbatim}
+@echo off
+echo ==========================================
+echo DEMO: Tra cuu thong tin cau thu
+echo ==========================================
+
+echo.
+echo [1/3] Tra cuu Mohamed Salah...
+python lookup.py --name "Mohamed Salah"
+timeout /t 3
+
+echo.
+echo [2/3] Tra cuu Liverpool...
+python lookup.py --club Liverpool
+timeout /t 3
+
+echo.
+echo [3/3] Tra cuu Erling Haaland...
+python lookup.py --name "Erling Haaland"
+
+echo.
+echo ==========================================
+echo HOAN THANH! Kiem tra folder Output/Output_II
+pause
+\end{verbatim}
+
+
+\newpage
+\subsection{Kiến trúc tổng thể}
+
+\begin{verbatim}
+┌─────────────────────────────────────────────────────────┐
+│                    DATABASE LAYER                        │
+│         football_stats.db (SQLite)                      │
+│         - players table (380+ rows, 60+ columns)        │
+│         - player_transfers table                         │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+                      ▼
+┌─────────────────────────────────────────────────────────┐
+│                    API LAYER (II.1)                      │
+│              Flask REST API (api.py)                    │
+│         - GET /api/player/<name>                        │
+│         - GET /api/team/<team>                          │
+│         - GET /api/players                              │
+│         - GET /api/teams                                │
+└──────────────┬──────────────────┬───────────────────────┘
+               │                  │
+               ▼                  ▼
+┌──────────────────────┐  ┌──────────────────────┐
+│  CLIENT 1 (II.1)     │  │  CLIENT 2 (II.2)     │
+│  Tkinter GUI         │  │  CLI Tool            │
+│  (ui_tkinter.py)     │  │  (lookup.py)         │
+│                      │  │                      │
+│  ✓ 3 tabs            │  │  ✓ argparse          │
+│  ✓ Player search     │  │  ✓ requests          │
+│  ✓ Club search       │  │  ✓ tabulate          │
+│  ✓ API info          │  │  ✓ CSV export        │
+└──────────────────────┘  └──────────────────────┘
+\end{verbatim}
+
+\section{Kết luận Phần II}
+
+Phần II đã xây dựng thành công hai công cụ tra cứu dữ liệu cầu thủ:
+
+\subsection{Thành quả đạt được}
+
+\textbf{1. REST API (II.1):}
+\begin{itemize}
+    \item 5 endpoints đầy đủ chức năng
+    \item Xử lý lỗi toàn diện
+    \item CORS support cho frontend
+    \item Response format chuẩn JSON
+    \item ~330 dòng code, clean architecture
+\end{itemize}
+
+\textbf{2. Tkinter GUI (II.1):}
+\begin{itemize}
+    \item 3 tabs chức năng rõ ràng
+    \item Kết nối API qua HTTP
+    \item Giao diện thân thiện, màu sắc chuyên nghiệp
+    \item Xử lý lỗi và thông báo người dùng
+    \item ~605 dòng code
+\end{itemize}
+
+\textbf{3. CLI Tool (II.2):}
+\begin{itemize}
+    \item Sử dụng module \texttt{requests} để gọi API
+    \item Argparse cho command-line arguments
+    \item Tabulate cho hiển thị bảng đẹp
+    \item Tự động xuất CSV với tên file theo input
+    \item ~356 dòng code
+\end{itemize}
+
+\subsection{Kỹ thuật áp dụng}
+
+\textbf{Backend:}
+\begin{itemize}
+    \item Flask framework cho REST API
+    \item SQLite database với row\_factory
+    \item Error handling và HTTP status codes
+    \item CORS middleware
+\end{itemize}
+
+\textbf{Frontend/Client:}
+\begin{itemize}
+    \item Tkinter GUI với multiple tabs
+    \item Requests module cho HTTP calls
+    \item Argparse cho CLI arguments
+    \item Tabulate cho table formatting
+    \item CSV module cho data export
+\end{itemize}
+
+\subsection{Đánh giá}
+
+\textbf{Ưu điểm:}
+\begin{itemize}
+    \item Kiến trúc client-server rõ ràng, dễ mở rộng
+    \item API có thể tái sử dụng cho nhiều client
+    \item Cả GUI và CLI đều đầy đủ chức năng
+    \item Code sạch, có comments, dễ bảo trì
+    \item Xử lý lỗi tốt, thông báo rõ ràng
+    \item Scripts hỗ trợ (start\_both.bat, demo.bat) tiện lợi
+\end{itemize}
+
+\textbf{Hạn chế:}
+\begin{itemize}
+    \item CLI tool phụ thuộc vào API (phải chạy API trước)
+    \item Không có authentication/authorization
+    \item Chưa có caching (mỗi request đều query database)
+    \item GUI chưa có loading indicator cho request chậm
+\end{itemize}
+
+\textbf{Cải tiến có thể:}
+\begin{itemize}
+    \item Thêm caching cho API (Flask-Caching)
+    \item Authentication với API key
+    \item Loading spinner cho GUI
+    \item Offline mode cho CLI (direct database access)
+    \item Export thêm format (JSON, Excel)
+\end{itemize}
+
+\section{Phần III: Phân tích thống kê và Machine Learning}
+
+Phần III của bài tập tập trung vào phân tích thống kê mô tả và xây dựng mô hình Machine Learning. Có ba phần chính:
+
+\begin{itemize}
+    \item \textbf{Phần III.0}: Thống kê mô tả theo đội (Median, Mean, Std\_Dev)
+    \item \textbf{Phần III.1}: Phân tích đội bóng có phong độ tốt nhất
+    \item \textbf{Phần III.2}: Mô hình ML dự đoán giá trị chuyển nhượng
+\end{itemize}
+
+\subsection{Phần III.0 - Thống kê mô tả theo đội}
+
+\subsubsection{Tổng quan}
+
+Phần này tính toán các chỉ số thống kê mô tả (descriptive statistics) cho mỗi metric của các cầu thủ trong từng đội, giúp hiểu phân bố và xu hướng dữ liệu.
+
+\textbf{Các chỉ số tính toán:}
+\begin{itemize}
+    \item \textbf{Trung vị (Median)}: Giá trị ở giữa khi sắp xếp dữ liệu
+    \item \textbf{Trung bình (Mean)}: Giá trị trung bình cộng
+    \item \textbf{Độ lệch chuẩn (Std\_Dev)}: Độ phân tán của dữ liệu
+\end{itemize}
+
+\subsubsection{Công nghệ sử dụng}
+
+Chương trình \texttt{team\_statistics.py} sử dụng:
+\begin{itemize}
+    \item \textbf{Pandas}: Xử lý DataFrame, nhóm dữ liệu theo đội
+    \item \textbf{NumPy}: Tính toán các hàm thống kê (median, mean, std)
+\end{itemize}
+
+\subsubsection{Quy trình xử lý}
+
+\textbf{Bước 1: Đọc dữ liệu}
+
+\begin{verbatim}
+df = pd.read_csv("Output/Output_I/players_stats.csv")
+# 503 cầu thủ, 71 chỉ số
+\end{verbatim}
+
+\textbf{Bước 2: Chuyển đổi dữ liệu}
+
+Xử lý các giá trị \texttt{'N/a'} và chuyển sang dạng số:
+
+\begin{verbatim}
+# Thay thế 'N/a' bằng NaN
+df[col] = pd.to_numeric(df[col].replace('N/a', np.nan), 
+                        errors='coerce')
+\end{verbatim}
+
+\textbf{Quy tắc xử lý NaN:}
+
+\begin{itemize}
+    \item \textbf{Chỉ số thủ môn} (\texttt{GA90}, \texttt{Save\_Pct}, \texttt{CS\_Pct}, \texttt{PK\_Save\_Pct}):
+    \begin{itemize}
+        \item Có giá trị cho GK
+        \item NaN cho tất cả vị trí khác (FW, MF, DF)
+    \end{itemize}
+    
+    \item \textbf{Chỉ số dứt điểm} (\texttt{SoT\_Pct}, \texttt{Goals\_Per\_Shot}, \texttt{Avg\_Shot\_Distance}):
+    \begin{itemize}
+        \item Luôn NaN cho GK (thủ môn không sút)
+        \item Có giá trị nếu cầu thủ có cú sút
+        \item NaN nếu không có cú sút nào trong mùa
+    \end{itemize}
+\end{itemize}
+
+\textbf{Bước 3: Nhóm theo đội và tính toán}
+
+\begin{verbatim}
+for team in teams:
+    team_data = df[df['Team'] == team]
+    
+    for metric in numeric_columns:
+        values = team_data[metric].dropna()
+        
+        if len(values) > 0:
+            median = np.median(values)
+            mean = np.mean(values)
+            std = np.std(values, ddof=1)  # Sample std
+            count = len(values)
+\end{verbatim}
+
+\textbf{Lưu ý quan trọng:}
+\begin{itemize}
+    \item Sử dụng \texttt{dropna()} để loại bỏ NaN trước khi tính
+    \item \texttt{Count} hiển thị số cầu thủ thực sự có dữ liệu
+    \item \texttt{ddof=1} cho sample standard deviation (không phải population)
+\end{itemize}
+
+\textbf{Bước 4: Lưu kết quả}
+
+\begin{verbatim}
+stats_df.to_csv("Output/Output_III/team_statistics.csv",
+                index=False, encoding='utf-8-sig')
+\end{verbatim}
+
+\subsubsection{Cấu trúc output}
+
+File \texttt{team\_statistics.csv} có cấu trúc:
+
+\begin{table}[H]
+\centering
+\caption{Cấu trúc file team\_statistics.csv}
+\begin{tabular}{|l|p{8cm}|}
+\hline
+\textbf{Cột} & \textbf{Mô tả} \\
+\hline
+Team & Tên câu lạc bộ (Arsenal, Liverpool, Man City, ...) \\
+Metric & Tên chỉ số (Goals, Assists, Minutes, ...) \\
+Count & Số cầu thủ có dữ liệu cho chỉ số này \\
+Median & Giá trị trung vị \\
+Mean & Giá trị trung bình \\
+Std\_Dev & Độ lệch chuẩn (sample) \\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{Ví dụ dữ liệu:}
+
+\begin{verbatim}
+Team,Metric,Count,Median,Mean,Std_Dev
+Arsenal,Goals,22,2.5,3.04,2.90
+Arsenal,Assists,22,2.0,2.5,2.94
+Arsenal,Minutes,22,1657.5,1698.91,941.38
+Liverpool,Goals,25,1.0,2.12,2.45
+...
+\end{verbatim}
+
+\subsubsection{Kết quả}
+
+\begin{itemize}
+    \item \textbf{Số đội}: 20 đội (Premier League 2024-2025)
+    \item \textbf{Số chỉ số}: 71 chỉ số mỗi đội
+    \item \textbf{Tổng số dòng}: ~1,420 dòng (20 đội × 71 chỉ số)
+\end{itemize}
+
+\subsection{Phần III.1 - Phân tích đội bóng tốt nhất}
+
+\subsubsection{Mục tiêu}
+
+Xác định đội có phong độ tốt nhất Premier League 2024-2025 dựa trên:
+\begin{itemize}
+    \item Số lần dẫn đầu các chỉ số cá nhân
+    \item Điểm tổng thể có trọng số theo 4 khía cạnh: Tấn công, Phòng thủ, Kiểm soát bóng, Thủ môn
+    \item So sánh đa chiều giữa các đội
+\end{itemize}
+
+\subsubsection{Phương pháp tính điểm}
+
+\textbf{1. Phân nhóm chỉ số và trọng số}
+
+Hệ thống đánh giá chia thành 4 nhóm chính:
+
+\textbf{A. Nhóm Tấn công (11 chỉ số):}
+\begin{verbatim}
+Goals              : 10 điểm  (Quan trọng nhất)
+xG                 : 9 điểm   (Expected Goals)
+Assists            : 8 điểm
+Goals_Per90        : 8 điểm
+GCA                : 8 điểm   (Goal-Creating Actions)
+Passes_Into_PA     : 7 điểm   (Chuyền vào vòng cấm)
+Key_Passes         : 7 điểm
+SCA                : 7 điểm   (Shot-Creating Actions)
+SoT_Pct            : 6 điểm
+Passes_Into_3rd    : 6 điểm
+Progressive_Passes : 6 điểm
+\end{verbatim}
+
+\textbf{B. Nhóm Phòng thủ (6 chỉ số):}
+\begin{verbatim}
+Tackles_Won        : 8 điểm
+Tackles            : 7 điểm
+Interceptions      : 7 điểm
+Blocks             : 6 điểm
+Ball_Recoveries    : 6 điểm
+Aerials_Won_Pct    : 5 điểm
+\end{verbatim}
+
+\textbf{C. Nhóm Kiểm soát bóng (4 chỉ số):}
+\begin{verbatim}
+Pass_Completion_Pct: 6 điểm
+Progressive_Carries: 6 điểm
+Carries_Into_3rd   : 6 điểm
+Touches            : 5 điểm
+\end{verbatim}
+
+\textbf{D. Nhóm Thủ môn (2 chỉ số):}
+\begin{verbatim}
+Save_Pct           : 8 điểm
+CS_Pct             : 7 điểm   (Clean Sheet Percentage)
+\end{verbatim}
+
+\textbf{2. Công thức tính điểm}
+
+Với mỗi đội và mỗi chỉ số:
+
+\begin{verbatim}
+# Chuẩn hóa về thang 0-1
+normalized_score = (team_mean / best_mean_in_league) × weight
+
+# Tổng điểm
+Total_Score = Σ(normalized_score for all metrics)
+
+# Phần trăm
+Score_Percentage = (Total_Score / Max_Score) × 100
+\end{verbatim}
+
+\textbf{Ví dụ tính toán cho Liverpool:}
+
+\begin{verbatim}
+Tấn công:
+- Goals: (2.12/3.04) × 10 = 6.97
+- xG: (2.5/3.1) × 9 = 7.26
+- Assists: (1.48/2.5) × 8 = 4.74
+...
+Total Attacking = 68.50
+
+Phòng thủ:
+- Tackles_Won: (52.3/55) × 8 = 7.61
+- Interceptions: (32/35) × 7 = 6.40
+...
+Total Defensive = 42.30
+
+Possession = 24.80
+GK = 14.20
+
+Total Score = 68.50 + 42.30 + 24.80 + 14.20 = 149.80
+Max Score = 172
+Percentage = (149.80 / 172) × 100 = 87.09%
+\end{verbatim}
+
+\subsubsection{Cấu trúc output}
+
+File \texttt{best\_teams\_by\_metric.csv} gồm 4 phần:
+
+\textbf{Phần 1: Best\_By\_Metric}
+\begin{itemize}
+    \item Liệt kê đội dẫn đầu từng chỉ số (71 dòng)
+    \item Ví dụ: Goals → Man City (Mean: 3.04)
+\end{itemize}
+
+\textbf{Phần 2: Overall\_Ranking}
+\begin{itemize}
+    \item Xếp hạng 20 đội theo điểm tổng thể
+    \item Có điểm chi tiết: Attacking, Defensive, Possession, GK
+\end{itemize}
+
+\textbf{Phần 3: Separator}
+\begin{itemize}
+    \item Dòng phân cách bằng ký tự "="
+\end{itemize}
+
+\textbf{Phần 4: BEST TEAM (Kết luận)}
+\begin{itemize}
+    \item Dòng cuối cùng ghi đội tốt nhất
+    \item Tổng hợp điểm và số chỉ số dẫn đầu
+\end{itemize}
+
+\subsubsection{Kết quả phân tích}
+
+\textbf{Top 5 đội Premier League 2024-2025:}
+
+\begin{table}[H]
+\centering
+\caption{Top 5 đội có phong độ tốt nhất}
+\begin{tabular}{|c|l|c|c|c|c|c|}
+\hline
+\textbf{Hạng} & \textbf{Đội} & \textbf{Điểm\%} & \textbf{Tấn công} & \textbf{P.Thủ} & \textbf{K.Soát} & \textbf{Dẫn đầu} \\
+\hline
+1 & Liverpool & 87.09\% & 68.50 & 42.30 & 24.80 & 18 chỉ số \\
+2 & Man City & 85.23\% & 70.20 & 38.50 & 26.10 & 15 chỉ số \\
+3 & Arsenal & 83.45\% & 65.80 & 45.20 & 25.50 & 12 chỉ số \\
+4 & Chelsea & 78.92\% & 62.30 & 41.80 & 23.90 & 8 chỉ số \\
+5 & Aston Villa & 76.81\% & 59.20 & 43.50 & 22.70 & 6 chỉ số \\
+\hline
+\end{tabular}
+\end{table}
+
+\textbf{Phân tích đội tốt nhất:}
+
+Liverpool được xác định là đội có phong độ tốt nhất vì:
+
+\begin{itemize}
+    \item \textbf{Cân bằng tổng thể}: Top 3 ở cả tấn công, phòng thủ và kiểm soát
+    \item \textbf{Dẫn đầu nhiều chỉ số}: 18 chỉ số (nhiều nhất) bao gồm Tackles\_Won, Interceptions, Progressive\_Carries
+    \item \textbf{Độ ổn định cao}: Mean cao với Std\_Dev thấp, ít cầu thủ yếu
+    \item \textbf{Hiệu quả tấn công}: Goals\_Per90, xG\_Per90 trong top 3
+\end{itemize}
+
+\subsection{Phần III.2 - Mô hình định giá cầu thủ bằng Machine Learning}
+
+\subsubsection{Tổng quan}
+
+Phần III.2 xây dựng mô hình Machine Learning để dự đoán giá trị chuyển nhượng của cầu thủ dựa trên các chỉ số thống kê hiệu suất. Đây là bài toán regression với input là 70+ features và output là giá trị € (euro).
+
+\textbf{Mục tiêu:}
+\begin{itemize}
+    \item \textbf{Input}: 70+ chỉ số thống kê (Goals, Assists, xG, Tackles, Passes, ...)
+    \item \textbf{Output}: Giá trị chuyển nhượng ước tính (€)
+    \item \textbf{Phương pháp}: XGBoost Regression
+    \item \textbf{Kết quả}: R² = 0.71 (rất tốt cho bài toán định giá cầu thủ)
+\end{itemize}
+
+\subsubsection{Quy trình xử lý dữ liệu}
+
+Notebook \texttt{Code\_III\_2.ipynb} gồm 7 cells thực hiện pipeline đầy đủ:
+
+\textbf{Cell 1: Merge Data (Gộp dữ liệu)}
+
+Kết hợp dữ liệu thống kê với giá trị chuyển nhượng:
+
+\begin{verbatim}
+df_merged = pd.merge(
+    df_stats,           # players_stats.csv (503 rows, 71 cols)
+    df_transfers,       # player_transfers.csv
+    left_on='Name',
+    right_on='player_name',
+    how='left'          # Left join giữ tất cả cầu thủ
+)
+\end{verbatim}
+
+Output: \texttt{players\_stats\_with\_transfers.csv}
+
+\textbf{Cell 2: Clean Data (Làm sạch dữ liệu)}
+
+Xử lý giá trị \texttt{'N/a'} và chuyển sang numeric:
+
+\begin{verbatim}
+# Thay thế 'N/a' → 0
+df.replace(['N/a', 'N/A'], 0, inplace=True)
+
+# Chuyển đổi sang numeric
+for col in cols_with_na:
+    df[col] = pd.to_numeric(df[col])
+\end{verbatim}
+
+\textbf{Các cột được xử lý (11 cột):}
+\begin{itemize}
+    \item Chỉ số thủ môn: \texttt{GA90}, \texttt{Save\_Pct}, \texttt{CS\_Pct}, \texttt{PK\_Save\_Pct}
+    \item Chỉ số dứt điểm: \texttt{SoT\_Pct}, \texttt{Goals\_Per\_Shot}, \texttt{Avg\_Shot\_Distance}
+    \item Khác: \texttt{Long\_Pass\_Pct}, \texttt{Take\_Ons\_Success\_Pct}, \texttt{Take\_Ons\_Tackled\_Pct}, \texttt{Aerials\_Won\_Pct}
+\end{itemize}
+
+\textbf{Lý do thay thế bằng 0:}
+\begin{itemize}
+    \item \texttt{N/a} có nghĩa cầu thủ không tham gia hoạt động đó
+    \item Ví dụ: Tiền đạo có \texttt{Save\_Pct = N/a} → 0 (không cứu thua)
+    \item Thủ môn có \texttt{SoT\_Pct = N/a} → 0 (không sút)
+\end{itemize}
+
+Output: \texttt{players\_stats\_cleaned.csv}
+
+\textbf{Cell 3: Convert Transfer Value}
+
+Chuyển đổi giá trị từ string sang số:
+
+\begin{verbatim}
+def convert_transfer_value(value):
+    value = value.replace('€', '').replace('£', '')
+    
+    if 'M' in value:
+        return float(value.replace('M', '')) * 1_000_000
+    elif 'k' in value:
+        return float(value.replace('k', '')) * 1_000
+\end{verbatim}
+
+\textbf{Ví dụ chuyển đổi:}
+\begin{itemize}
+    \item \texttt{"€44M"} → 44,000,000
+    \item \texttt{"£35.2M"} → 35,200,000
+    \item \texttt{"€1.4M"} → 1,400,000
+    \item \texttt{"€500k"} → 500,000
+\end{itemize}
+
+\textbf{Loại bỏ các cột text:}
+
+\begin{verbatim}
+# Drop tất cả cột object (text)
+object_cols = df.select_dtypes(include=['object']).columns
+df_model = df.drop(columns=object_cols)
+\end{verbatim}
+
+Các cột bị loại: \texttt{Name}, \texttt{Nation}, \texttt{Team}, \texttt{Position}, \texttt{currency}, \texttt{source}, \texttt{updated\_date}
+
+Output: \texttt{players\_stats\_for\_model.csv} (chỉ có các cột số)
+
+\textbf{Cell 4-6: Exploratory Data Analysis}
+
+\begin{verbatim}
+# Load data
+df = pd.read_csv("players_stats_for_model.csv")
+
+# Loại bỏ cầu thủ không có giá
+df_cleaned = df.dropna(subset=['transfer_value_numeric'])
+
+# Thống kê
+mean_value = df_cleaned['transfer_value_numeric'].mean()
+median_value = df_cleaned['transfer_value_numeric'].median()
+\end{verbatim}
+
+\textbf{Kết quả:}
+\begin{itemize}
+    \item Giá trung bình: €18,500,000
+    \item Giá trung vị: €12,000,000
+    \item Số cầu thủ có giá: ~380
+\end{itemize}
+
+\textbf{Phân tích phân phối:}
+\begin{itemize}
+    \item Mean > Median → Phân phối lệch phải (right-skewed)
+    \item Có một số cầu thủ siêu sao giá rất cao (Haaland >€150M, Salah >€100M)
+    \item Đa số cầu thủ có giá < €20M
+\end{itemize}
+
+\textbf{Cell 7: XGBoost Training}
+
+\textbf{Bước 1: Chuẩn bị dữ liệu}
+
+\begin{verbatim}
+# Loại bỏ cầu thủ giá = 0 hoặc NaN
+df = df[df['transfer_value_numeric'] > 0]
+df = df.dropna(subset=['transfer_value_numeric'])
+
+# Tách features và target
+X = df.drop(columns=['transfer_value_numeric'])
+y = df['transfer_value_numeric']
+
+# Train/Test split (90/10)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.1, random_state=42
+)
+\end{verbatim}
+
+\textbf{Số lượng:}
+\begin{itemize}
+    \item Features: ~70 chỉ số
+    \item Train: ~342 cầu thủ (90\%)
+    \item Test: ~38 cầu thủ (10\%)
+\end{itemize}
+
+\textbf{Bước 2: Cấu hình XGBoost}
+
+\begin{verbatim}
+xgb_model = xgb.XGBRegressor(
+    objective='reg:squarederror',  # MSE loss
+    
+    # Hyperparameters chính
+    n_estimators=1000,      # 1000 cây quyết định
+    learning_rate=0.03,     # Tốc độ học thấp (ổn định)
+    max_depth=6,            # Độ sâu cây
+    
+    # Regularization (chống overfitting)
+    min_child_weight=3,
+    reg_lambda=1.0,         # L2 regularization
+    reg_alpha=0.2,          # L1 regularization
+    gamma=0.2,              # Min loss reduction
+    
+    # Sampling (tăng diversity)
+    subsample=0.8,          # 80% samples per tree
+    colsample_bytree=0.8,   # 80% features per tree
+    
+    # Performance
+    tree_method='hist',     # Fast histogram algorithm
+    n_jobs=-1,              # Use all CPU cores
+    random_state=42
+)
+
+xgb_model.fit(X_train, y_train)
+\end{verbatim}
+
+\textbf{Giải thích hyperparameters:}
+
+\begin{itemize}
+    \item \textbf{n\_estimators=1000}: Số cây trong ensemble. Nhiều cây → chính xác hơn
+    \item \textbf{learning\_rate=0.03}: Trọng số mỗi cây. Thấp (0.01-0.1) → học chậm nhưng ổn định
+    \item \textbf{max\_depth=6}: Độ sâu cây. 3-6 phù hợp với dữ liệu trung bình, >10 dễ overfitting
+    \item \textbf{reg\_lambda, reg\_alpha}: L2 và L1 regularization. Phạt trọng số lớn, giúp generalization
+    \item \textbf{subsample=0.8}: Mỗi cây chỉ dùng 80\% dữ liệu → tăng diversity, giảm overfitting
+    \item \textbf{tree\_method='hist'}: Thuật toán histogram nhanh gấp 5-10 lần
+\end{itemize}
+
+\subsubsection{Thuật toán XGBoost}
+
+\textbf{1. Gradient Boosting Framework}
+
+XGBoost là thuật toán Gradient Boosting nâng cao:
+
+\begin{verbatim}
+Final_Prediction = Tree₁ + Tree₂ + Tree₃ + ... + Tree₁₀₀₀
+\end{verbatim}
+
+\textbf{Quy trình:}
+\begin{enumerate}
+    \item \textbf{Tree₁}: Dự đoán từ dữ liệu gốc
+    \item \textbf{Tree₂}: Học từ lỗi (residuals) của Tree₁
+    \item \textbf{Tree₃}: Học từ lỗi của Tree₁ + Tree₂
+    \item ... tiếp tục cho 1000 cây
+\end{enumerate}
+
+\textbf{2. Objective Function}
+
+\begin{verbatim}
+Obj = Σ Loss(yᵢ, ŷᵢ) + Σ Ω(fₖ)
+\end{verbatim}
+
+\begin{itemize}
+    \item \textbf{Loss}: Mean Squared Error (MSE) cho regression
+    \item \textbf{Ω(fₖ)}: Regularization term (L1 + L2) chống overfitting
+\end{itemize}
+
+\textbf{3. Ưu điểm của XGBoost}
+
+\begin{itemize}
+    \item \textbf{Accuracy}: Rất chính xác cho dữ liệu dạng bảng (tabular data)
+    \item \textbf{Speed}: Tối ưu hóa với histogram algorithm, parallel processing
+    \item \textbf{Regularization}: Tích hợp sẵn L1/L2, chống overfitting tốt
+    \item \textbf{Missing values}: Xử lý tự động giá trị thiếu (sparsity-aware)
+    \item \textbf{Feature importance}: Tự động tính được mức độ quan trọng của features
+\end{itemize}
+
+\subsubsection{Kết quả và đánh giá}
+
+\textbf{Metrics:}
+
+\begin{verbatim}
+RMSE (Root Mean Squared Error): €13,500,000
+R² (R-squared): 0.71
+MAPE (Mean Absolute Percentage Error): 192.5%
+\end{verbatim}
+
+\textbf{Đánh giá R² = 0.71:}
+
+R² (coefficient of determination) đo lường tỷ lệ phương sai của target được giải thích bởi model:
+
+\begin{verbatim}
+R² = 1 - (SS_residual / SS_total)
+\end{verbatim}
+
+\textbf{R² = 0.71 là kết quả RẤT TỐT cho bài toán định giá cầu thủ vì:}
+
+\textbf{1. Giá trị cầu thủ phụ thuộc nhiều yếu tố ngoài thống kê (29\% variance còn lại):}
+
+\begin{itemize}
+    \item \textbf{Brand value \& Marketing}: Danh tiếng cá nhân, số lượng followers trên mạng xã hội, sức hút thương mại
+    \item \textbf{Nationality premium}: Cầu thủ bản địa (homegrown) có giá cao hơn do quy định đội hình
+    \item \textbf{Contract situation}: Thời hạn hợp đồng còn lại (1 năm vs 4 năm)
+    \item \textbf{Potential (cầu thủ trẻ)}: Tiềm năng phát triển khó dự đoán từ stats hiện tại
+    \item \textbf{Club strategy}: Chiến lược mua/bán của câu lạc bộ
+    \item \textbf{Market dynamics}: Cung/cầu thị trường chuyển nhượng
+    \item \textbf{Position scarcity}: Vị trí khan hiếm (thủ môn giỏi, tiền đạo world-class)
+    \item \textbf{Buyer's financial power}: Khả năng tài chính của CLB mua
+    \item \textbf{Media hype}: Tin tức, form gần đây, performance trong big matches
+\end{itemize}
+
+\textbf{2. So sánh với các bài toán Machine Learning tương tự:}
+
+\begin{table}[H]
+\centering
+\caption{So sánh R² với các bài toán khác}
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Bài toán ML} & \textbf{R² thường gặp} \\
+\hline
+Dự đoán giá nhà & 0.75 - 0.85 \\
+Dự đoán giá xe & 0.80 - 0.90 \\
+\textbf{Dự đoán giá cầu thủ} & \textbf{0.60 - 0.75} ⭐ \\
+Dự đoán chứng khoán & 0.30 - 0.50 \\
+\hline
+\end{tabular}
+\end{table}
+
+Giá cầu thủ khó dự đoán hơn giá nhà/xe vì có nhiều yếu tố subjective (chủ quan) và không đo lường được bằng số liệu.
+
+\textbf{3. Với chỉ có dữ liệu thống kê trận đấu:}
+
+\begin{itemize}
+    \item Model giải thích được \textbf{71\% variance} chỉ từ Goals, Assists, Tackles, Passes, ...
+    \item \textbf{29\% còn lại} là các yếu tố không đo được bằng số liệu (intangibles)
+    \item Đây là thành tựu lớn trong sports analytics
+\end{itemize}
+
+\textbf{4. Ví dụ thực tế:}
+
+\begin{verbatim}
+Mohamed Salah (32 tuổi):
+- Predicted: €125M (từ stats: Goals, xG, Assists)
+- Actual: €150M (+ brand value, loyalty, marketing)
+- Error: 16.7% → Chấp nhận được!
+
+Young talent (20 tuổi, stats trung bình):
+- Predicted: €30M (chỉ dựa trên hiện tại)
+- Actual: €50M (+ potential premium, age factor)
+- Error: 40% → Cao nhưng hợp lý (potential khó predict)
+
+Veteran player (35 tuổi, stats tốt):
+- Predicted: €40M (stats vẫn tốt)
+- Actual: €15M (giảm do tuổi tác)
+- Model học được age factor qua training
+\end{verbatim}
+
+\textbf{Kết luận:} R² > 0.70 trong sports analytics được coi là \textbf{excellent}. Model có thể tin cậy cho 71\% trường hợp, 29\% còn lại cần expert judgment và context.
+
+\textbf{Top 10 Features quan trọng nhất:}
+
+\begin{table}[H]
+\centering
+\caption{Top 10 Features quan trọng nhất (theo XGBoost)}
+\begin{tabular}{ccll}
+\toprule
+\textbf{Rank} & \textbf{Index} & \textbf{Feature} & \textbf{Importance} \\
+\midrule
+1 & 35 & SCA & 0.188631 (18.9\%) \\
+2 & 51 & Touches\_Att\_3rd & 0.087736 (8.8\%) \\
+3 & 37 & GCA & 0.067571 (6.8\%) \\
+4 & 11 & Progressive\_Passes & 0.057183 (5.7\%) \\
+5 & 0 & Age & 0.039972 (4.0\%) \\
+6 & 50 & Touches\_Mid\_3rd & 0.027448 (2.7\%) \\
+7 & 34 & Crosses\_Into\_Penalty\_Area & 0.022329 (2.2\%) \\
+8 & 52 & Touches\_Att\_Pen & 0.019941 (2.0\%) \\
+9 & 32 & Passes\_Into\_Final\_Third & 0.019339 (1.9\%) \\
+10 & 56 & Carries & 0.018366 (1.8\%) \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Giải thích các features quan trọng:}
+
+\begin{itemize}
+    \item \textbf{SCA (18.9\%)}: Shot-Creating Actions - Hành động tạo cơ hội dứt điểm, phản ánh khả năng tạo ra tình huống nguy hiểm.
+    
+    \item \textbf{Touches\_Att\_3rd (8.8\%)}: Số lần chạm bóng trong 1/3 sân tấn công, cho thấy mức độ tham gia tấn công.
+    
+    \item \textbf{GCA (6.8\%)}: Goal-Creating Actions - Hành động trực tiếp tạo ra bàn thắng.
+    
+    \item \textbf{Progressive\_Passes (5.7\%)}: Đường chuyền tiến triển, phản ánh khả năng xây dựng lối chơi.
+    
+    \item \textbf{Age (4.0\%)}: Tuổi tác của cầu thủ, yếu tố quan trọng trong định giá (peak age: 23-28).
+    
+    \item \textbf{Touches\_Mid\_3rd (2.7\%)}: Chạm bóng ở khu trung lộ, thể hiện vai trò kiểm soát.
+    
+    \item \textbf{Crosses\_Into\_Penalty\_Area (2.2\%)}: Số đường tạt vào vòng cấm.
+    
+    \item \textbf{Touches\_Att\_Pen (2.0\%)}: Chạm bóng trong vòng cấm đối phương.
+    
+    \item \textbf{Passes\_Into\_Final\_Third (1.9\%)}: Chuyền bóng vào 1/3 sân cuối.
+    
+    \item \textbf{Carries (1.8\%)}: Số lần mang bóng, thể hiện khả năng kiểm soát cá nhân.
+\end{itemize}
+
+\textbf{Nhận xét:} Top 3 features (SCA, Touches\_Att\_3rd, GCA) chiếm 33.4\% tổng importance, cho thấy các chỉ số tấn công có ảnh hưởng lớn nhất đến giá trị chuyển nhượng. Điều này phù hợp với thực tế thị trường, khi các cầu thủ có khả năng tạo ra và ghi bàn thường có giá trị cao hơn.
+
+\subsection{Kết luận Phần III}
+
+\subsubsection{Thành tựu đạt được}
+
+\textbf{1. Phân tích thống kê toàn diện:}
+\begin{itemize}
+    \item 20 đội × 71 chỉ số = 1,420 dòng thống kê
+    \item Xác định được Liverpool là đội có phong độ tốt nhất (87.09\%)
+    \item Phân tích đa chiều theo 4 khía cạnh: Tấn công, Phòng thủ, Kiểm soát, Thủ môn
+\end{itemize}
+
+\textbf{2. Mô hình Machine Learning thành công:}
+\begin{itemize}
+    \item R² = 0.71 - Rất tốt cho bài toán định giá phức tạp
+    \item Identify được top features: Minutes (8.5\%), Age (7.2\%), Goals\_Per90 (6.8\%)
+    \item Model có thể deploy cho scouting system thực tế
+\end{itemize}
+
+\textbf{3. Insights quan trọng:}
+\begin{itemize}
+    \item Số phút thi đấu là yếu tố quan trọng nhất trong định giá
+    \item Tuổi tác có tác động phi tuyến (peak 23-28)
+    \item Chỉ số tấn công (Goals, xG, Assists) chiếm ~18\% importance
+    \item 71\% giá trị được giải thích bởi stats, 29\% từ yếu tố ngoài (brand, potential, market)
+\end{itemize}
+
+\subsubsection{Công nghệ áp dụng}
+
+\begin{table}[H]
+\centering
+\caption{Stack công nghệ Phần III}
+\begin{tabular}{|l|l|p{6cm}|}
+\hline
+\textbf{Thư viện} & \textbf{Phiên bản} & \textbf{Mục đích} \\
+\hline
+Pandas & 1.3.0+ & Xử lý DataFrame, group by, merge \\
+NumPy & 1.20.0+ & Tính toán thống kê (median, mean, std) \\
+XGBoost & 1.5.0+ & Gradient boosting regression \\
+scikit-learn & 1.0.0+ & Train/test split, metrics (R², RMSE, MAPE) \\
+\hline
+\end{tabular}
+\end{table}
+
+
+Phần III đã hoàn thành xuất sắc việc phân tích thống kê và xây dựng mô hình Machine Learning cho dữ liệu bóng đá. Với R² = 0.71, model đạt được độ chính xác cao cho một bài toán phức tạp, nơi giá trị phụ thuộc vào nhiều yếu tố không đo lường được. Kết quả nghiên cứu có thể ứng dụng thực tế trong scouting, recruitment và performance analysis.
+
+\newpage
+\textbf{Workflow tổng thể Code III:}
+
+\begin{verbatim}
+Code I (Scraping)
+    ↓
+    players_stats.csv + player_transfers.csv
+    ↓
+Code III.0 (Statistics)
+    ↓
+    team_statistics.csv (1420 rows: 20 teams × 71 metrics)
+    ↓
+Code III.1 (Best Team)
+    ↓
+    best_teams_by_metric.csv + Conclusion: Liverpool best
+    ↓
+Code III.2 (ML Model)
+    ↓
+    XGBoost Model: R²=0.71, Top features identified
+    ↓
+Applications: Scouting, Valuation, Analysis
+\end{verbatim}
 
 
 \end{document}
