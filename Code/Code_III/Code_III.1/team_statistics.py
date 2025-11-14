@@ -24,9 +24,9 @@ def load_data(file_path):
     Returns:
         DataFrame: Dữ liệu cầu thủ
     """
-    print(f"📂 Đang đọc dữ liệu từ: {file_path}")
+    print(f"Đang đọc dữ liệu từ: {file_path}")
     df = pd.read_csv(file_path)
-    print(f"✅ Đã đọc {len(df)} cầu thủ từ {df['Team'].nunique()} đội")
+    print(f"Đã đọc {len(df)} cầu thủ từ {df['Team'].nunique()} đội")
     return df
 
 def convert_to_numeric(df):
@@ -39,7 +39,7 @@ def convert_to_numeric(df):
     Returns:
         DataFrame: DataFrame đã được chuyển đổi
     """
-    print("\n🔄 Đang chuyển đổi dữ liệu sang dạng số...")
+    print("\nĐang chuyển đổi dữ liệu sang dạng số...")
     
     # Các cột không phải số (giữ nguyên)
     non_numeric_cols = ['Name', 'Nation', 'Team', 'Position']
@@ -50,7 +50,7 @@ def convert_to_numeric(df):
             # Thay thế 'N/a' bằng NaN, sau đó chuyển sang số
             df[col] = pd.to_numeric(df[col].replace('N/a', np.nan), errors='coerce')
     
-    print(f"✅ Đã chuyển đổi {len(df.columns) - len(non_numeric_cols)} cột số")
+    print(f"Đã chuyển đổi {len(df.columns) - len(non_numeric_cols)} cột số")
     return df
 
 def calculate_team_statistics(df):
@@ -63,7 +63,7 @@ def calculate_team_statistics(df):
     Returns:
         DataFrame: Thống kê theo đội
     """
-    print("\n📊 Đang tính toán thống kê cho từng đội...")
+    print("\nĐang tính toán thống kê cho từng đội...")
     
     # Lấy các cột số (bỏ qua Name, Nation, Team, Position)
     non_numeric_cols = ['Name', 'Nation', 'Team', 'Position']
@@ -100,7 +100,7 @@ def calculate_team_statistics(df):
                 })
     
     stats_df = pd.DataFrame(results)
-    print(f"\n✅ Hoàn thành! Tổng cộng {len(results)} dòng thống kê")
+    print(f"\nHoàn thành! Tổng cộng {len(results)} dòng thống kê")
     print(f"   ({len(teams)} đội × {len(numeric_cols)} chỉ số)")
     
     return stats_df
@@ -116,9 +116,9 @@ def save_results(df, output_file):
     # Tạo thư mục nếu chưa có
     output_file.parent.mkdir(parents=True, exist_ok=True)
     
-    print(f"\n💾 Đang lưu kết quả vào: {output_file}")
+    print(f"\nĐang lưu kết quả vào: {output_file}")
     df.to_csv(output_file, index=False, encoding='utf-8-sig')
-    print(f"✅ Đã lưu thành công!")
+    print(f"Đã lưu thành công!")
     print(f"   Kích thước file: {output_file.stat().st_size / 1024:.2f} KB")
 
 def display_summary(stats_df):
@@ -129,28 +129,28 @@ def display_summary(stats_df):
         stats_df: DataFrame thống kê
     """
     print("\n" + "="*70)
-    print("📈 TỔNG HỢP KẾT QUẢ")
+    print("TỔNG HỢP KẾT QUẢ")
     print("="*70)
     
     teams = stats_df['Team'].unique()
     metrics = stats_df['Metric'].unique()
     
-    print(f"\n🏆 Số đội: {len(teams)}")
-    print(f"📊 Số chỉ số: {len(metrics)}")
-    print(f"📝 Tổng số dòng: {len(stats_df)}")
+    print(f"\nSố đội: {len(teams)}")
+    print(f"Số chỉ số: {len(metrics)}")
+    print(f"Tổng số dòng: {len(stats_df)}")
     
-    print(f"\n🔢 Các chỉ số phân tích:")
+    print(f"\nCác chỉ số phân tích:")
     print(f"   - Trung vị (Median)")
     print(f"   - Trung bình (Mean)")
     print(f"   - Độ lệch chuẩn (Std_Dev)")
     
-    print(f"\n📋 Danh sách đội:")
+    print(f"\nDanh sách đội:")
     for i, team in enumerate(sorted(teams), 1):
         team_count = len(stats_df[stats_df['Team'] == team])
         print(f"   {i:2d}. {team:20s} - {team_count} chỉ số")
     
     # Ví dụ một số kết quả
-    print(f"\n📊 VÍ DỤ KẾT QUẢ (Goals):")
+    print(f"\nVÍ DỤ KẾT QUẢ (Goals):")
     print("-" * 70)
     goals_stats = stats_df[stats_df['Metric'] == 'Goals'].sort_values('Mean', ascending=False).head(5)
     if len(goals_stats) > 0:
@@ -162,7 +162,7 @@ def display_summary(stats_df):
 def main():
     """Hàm chính"""
     print("="*70)
-    print("⚽ PHÂN TÍCH THỐNG KÊ CẦU THỦ THEO ĐỘI")
+    print("PHÂN TÍCH THỐNG KÊ CẦU THỦ THEO ĐỘI")
     print("   Premier League 2024-2025")
     print("="*70)
     
@@ -183,18 +183,18 @@ def main():
         display_summary(stats_df)
         
         print("\n" + "="*70)
-        print("✅ HOÀN THÀNH!")
+        print("HOÀN THÀNH!")
         print("="*70)
-        print(f"\n📁 File kết quả: {OUTPUT_FILE}")
-        print(f"📊 Mở file CSV để xem chi tiết thống kê của từng đội")
+        print(f"\nFile kết quả: {OUTPUT_FILE}")
+        print(f"Mở file CSV để xem chi tiết thống kê của từng đội")
         
     except FileNotFoundError as e:
-        print(f"\n❌ Lỗi: Không tìm thấy file")
+        print(f"\nLỗi: Không tìm thấy file")
         print(f"   {e}")
-        print(f"\n💡 Vui lòng chạy scraper (Code_I) trước để tạo dữ liệu")
+        print(f"\nVui lòng chạy scraper (Code_I) trước để tạo dữ liệu")
         
     except Exception as e:
-        print(f"\n❌ Lỗi: {e}")
+        print(f"\nLỗi: {e}")
         import traceback
         traceback.print_exc()
 

@@ -1572,7 +1572,6 @@ Phần II đã xây dựng thành công hai công cụ tra cứu dữ liệu c�
     \item Kết nối API qua HTTP
     \item Giao diện thân thiện, màu sắc chuyên nghiệp
     \item Xử lý lỗi và thông báo người dùng
-    \item ~605 dòng code
 \end{itemize}
 
 \textbf{3. CLI Tool (II.2):}
@@ -1581,7 +1580,6 @@ Phần II đã xây dựng thành công hai công cụ tra cứu dữ liệu c�
     \item Argparse cho command-line arguments
     \item Tabulate cho hiển thị bảng đẹp
     \item Tự động xuất CSV với tên file theo input
-    \item ~356 dòng code
 \end{itemize}
 
 \subsection{Kỹ thuật áp dụng}
@@ -1623,15 +1621,6 @@ Phần II đã xây dựng thành công hai công cụ tra cứu dữ liệu c�
     \item GUI chưa có loading indicator cho request chậm
 \end{itemize}
 
-\textbf{Cải tiến có thể:}
-\begin{itemize}
-    \item Thêm caching cho API (Flask-Caching)
-    \item Authentication với API key
-    \item Loading spinner cho GUI
-    \item Offline mode cho CLI (direct database access)
-    \item Export thêm format (JSON, Excel)
-\end{itemize}
-
 \section{Phần III: Phân tích thống kê và Machine Learning}
 
 Phần III của bài tập tập trung vào phân tích thống kê mô tả và xây dựng mô hình Machine Learning. Có ba phần chính:
@@ -1642,7 +1631,7 @@ Phần III của bài tập tập trung vào phân tích thống kê mô tả v�
     \item \textbf{Phần III.2}: Mô hình ML dự đoán giá trị chuyển nhượng
 \end{itemize}
 
-\subsection{Phần III.0 - Thống kê mô tả theo đội}
+\subsection{Phần III.1 - Thống kê mô tả theo đội}
 
 \subsubsection{Tổng quan}
 
@@ -1932,7 +1921,7 @@ Phần III.2 xây dựng mô hình Machine Learning để dự đoán giá trị
 \begin{itemize}
     \item \textbf{Input}: 70+ chỉ số thống kê (Goals, Assists, xG, Tackles, Passes, ...)
     \item \textbf{Output}: Giá trị chuyển nhượng ước tính (€)
-    \item \textbf{Phương pháp}: XGBoost Regression
+    \item \textbf{Phương pháp đánh giá đề xuất}: XGBoost Regression
     \item \textbf{Kết quả}: R² = 0.71 (rất tốt cho bài toán định giá cầu thủ)
 \end{itemize}
 
@@ -2158,7 +2147,7 @@ Obj = Σ Loss(yᵢ, ŷᵢ) + Σ Ω(fₖ)
 \textbf{Metrics:}
 
 \begin{verbatim}
-RMSE (Root Mean Squared Error): €13,500,000
+RMSE (Root Mean Squared Error): ~ €13,500,000
 R² (R-squared): 0.71
 MAPE (Mean Absolute Percentage Error): 192.5%
 \end{verbatim}
@@ -2187,23 +2176,6 @@ R² = 1 - (SS_residual / SS_total)
     \item \textbf{Media hype}: Tin tức, form gần đây, performance trong big matches
 \end{itemize}
 
-\textbf{2. So sánh với các bài toán Machine Learning tương tự:}
-
-\begin{table}[H]
-\centering
-\caption{So sánh R² với các bài toán khác}
-\begin{tabular}{|l|c|}
-\hline
-\textbf{Bài toán ML} & \textbf{R² thường gặp} \\
-\hline
-Dự đoán giá nhà & 0.75 - 0.85 \\
-Dự đoán giá xe & 0.80 - 0.90 \\
-\textbf{Dự đoán giá cầu thủ} & \textbf{0.60 - 0.75} ⭐ \\
-Dự đoán chứng khoán & 0.30 - 0.50 \\
-\hline
-\end{tabular}
-\end{table}
-
 Giá cầu thủ khó dự đoán hơn giá nhà/xe vì có nhiều yếu tố subjective (chủ quan) và không đo lường được bằng số liệu.
 
 \textbf{3. Với chỉ có dữ liệu thống kê trận đấu:}
@@ -2211,7 +2183,6 @@ Giá cầu thủ khó dự đoán hơn giá nhà/xe vì có nhiều yếu tố s
 \begin{itemize}
     \item Model giải thích được \textbf{71\% variance} chỉ từ Goals, Assists, Tackles, Passes, ...
     \item \textbf{29\% còn lại} là các yếu tố không đo được bằng số liệu (intangibles)
-    \item Đây là thành tựu lớn trong sports analytics
 \end{itemize}
 
 \textbf{4. Ví dụ thực tế:}
@@ -2326,9 +2297,6 @@ scikit-learn & 1.0.0+ & Train/test split, metrics (R², RMSE, MAPE) \\
 \hline
 \end{tabular}
 \end{table}
-
-
-Phần III đã hoàn thành xuất sắc việc phân tích thống kê và xây dựng mô hình Machine Learning cho dữ liệu bóng đá. Với R² = 0.71, model đạt được độ chính xác cao cho một bài toán phức tạp, nơi giá trị phụ thuộc vào nhiều yếu tố không đo lường được. Kết quả nghiên cứu có thể ứng dụng thực tế trong scouting, recruitment và performance analysis.
 
 \newpage
 \textbf{Workflow tổng thể Code III:}

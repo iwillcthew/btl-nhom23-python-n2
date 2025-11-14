@@ -60,9 +60,9 @@ def load_statistics(file_path):
     Returns:
         DataFrame: Dữ liệu thống kê
     """
-    print(f"📂 Đang đọc dữ liệu từ: {file_path}")
+    print(f"Đang đọc dữ liệu từ: {file_path}")
     df = pd.read_csv(file_path)
-    print(f"✅ Đã đọc {len(df)} dòng thống kê")
+    print(f"Đã đọc {len(df)} dòng thống kê")
     print(f"   {df['Team'].nunique()} đội, {df['Metric'].nunique()} chỉ số")
     return df
 
@@ -76,7 +76,7 @@ def find_best_teams_by_metric(df):
     Returns:
         DataFrame: Đội tốt nhất cho mỗi chỉ số
     """
-    print("\n🏆 Đang tìm đội tốt nhất cho từng chỉ số...")
+    print("\nĐang tìm đội tốt nhất cho từng chỉ số...")
     
     best_teams = []
     metrics = df['Metric'].unique()
@@ -96,7 +96,7 @@ def find_best_teams_by_metric(df):
             'Count': best_row['Count']
         })
     
-    print(f"✅ Đã phân tích {len(best_teams)} chỉ số")
+    print(f"Đã phân tích {len(best_teams)} chỉ số")
     return pd.DataFrame(best_teams)
 
 def calculate_overall_score(df, best_teams_df):
@@ -110,7 +110,7 @@ def calculate_overall_score(df, best_teams_df):
     Returns:
         DataFrame: Điểm tổng thể của các đội
     """
-    print("\n📊 Đang tính điểm tổng thể cho các đội...")
+    print("\nĐang tính điểm tổng thể cho các đội...")
     
     teams = df['Team'].unique()
     team_scores = []
@@ -165,7 +165,7 @@ def calculate_overall_score(df, best_teams_df):
         })
     
     scores_df = pd.DataFrame(team_scores).sort_values('Score_Percentage', ascending=False)
-    print(f"✅ Đã tính điểm cho {len(teams)} đội")
+    print(f"Đã tính điểm cho {len(teams)} đội")
     
     return scores_df
 
@@ -180,7 +180,7 @@ def analyze_best_team(scores_df, best_teams_df):
     Returns:
         dict: Thông tin đội tốt nhất
     """
-    print("\n🥇 Đang phân tích đội tốt nhất...")
+    print("\nĐang phân tích đội tốt nhất...")
     
     best_team = scores_df.iloc[0]
     team_name = best_team['Team']
@@ -217,7 +217,7 @@ def save_results_with_conclusion(best_teams_df, scores_df, best_team_analysis, o
     """
     output_file.parent.mkdir(parents=True, exist_ok=True)
     
-    print(f"\n💾 Đang lưu kết quả vào: {output_file}")
+    print(f"\nĐang lưu kết quả vào: {output_file}")
     
     # Gộp hai DataFrame
     # Phần 1: Best teams by metric
@@ -271,7 +271,7 @@ def save_results_with_conclusion(best_teams_df, scores_df, best_team_analysis, o
     
     # Thêm dòng kết luận
     conclusion_row = pd.DataFrame([{
-        'Analysis_Type': '🏆 BEST TEAM',
+        'Analysis_Type': 'BEST TEAM',
         'Best_Team': best_team_analysis['team'],
         'Metric': f"Leading {best_team_analysis['leadership_count']} metrics",
         'Mean': '',
@@ -290,7 +290,7 @@ def save_results_with_conclusion(best_teams_df, scores_df, best_team_analysis, o
     
     # Lưu file
     combined_df.to_csv(output_file, index=False, encoding='utf-8-sig')
-    print(f"✅ Đã lưu thành công!")
+    print(f"Đã lưu thành công!")
     print(f"   Kích thước file: {output_file.stat().st_size / 1024:.2f} KB")
 
 def display_summary(scores_df, best_team_analysis, best_teams_df):
@@ -303,22 +303,22 @@ def display_summary(scores_df, best_team_analysis, best_teams_df):
         best_teams_df: DataFrame đội tốt nhất theo metric
     """
     print("\n" + "="*80)
-    print("🏆 KẾT QUẢ PHÂN TÍCH - PREMIER LEAGUE 2024-2025")
+    print("KẾT QUẢ PHÂN TÍCH - PREMIER LEAGUE 2024-2025")
     print("="*80)
     
     # Đội tốt nhất tổng thể
-    print(f"\n🥇 ĐỘI CÓ PHONG ĐỘ TỐT NHẤT: {best_team_analysis['team']}")
+    print(f"\nĐỘI CÓ PHONG ĐỘ TỐT NHẤT: {best_team_analysis['team']}")
     print(f"   Điểm tổng thể: {best_team_analysis['score_percentage']:.2f}%")
     print(f"   Dẫn đầu {best_team_analysis['leadership_count']} chỉ số")
     
-    print(f"\n📊 Chi tiết điểm:")
-    print(f"   ⚽ Tấn công:     {best_team_analysis['attacking_score']:.2f}")
-    print(f"   🛡️  Phòng thủ:    {best_team_analysis['defensive_score']:.2f}")
-    print(f"   🏃 Kiểm soát:    {best_team_analysis['possession_score']:.2f}")
-    print(f"   🧤 Thủ môn:      {best_team_analysis['gk_score']:.2f}")
+    print(f"\nChi tiết điểm:")
+    print(f"   Tấn công:     {best_team_analysis['attacking_score']:.2f}")
+    print(f"   Phòng thủ:    {best_team_analysis['defensive_score']:.2f}")
+    print(f"   Kiểm soát:    {best_team_analysis['possession_score']:.2f}")
+    print(f"   Thủ môn:      {best_team_analysis['gk_score']:.2f}")
     
     # Top 5 đội
-    print(f"\n📋 TOP 5 ĐỘI:")
+    print(f"\nTOP 5 ĐỘI:")
     print("-" * 80)
     print(f"{'Hạng':<6} {'Đội':<25} {'Điểm%':<10} {'Tấn công':<12} {'Phòng thủ':<12} {'Kiểm soát':<12}")
     print("-" * 80)
@@ -328,14 +328,14 @@ def display_summary(scores_df, best_team_analysis, best_teams_df):
               f"{row['Possession_Score']:>8.2f}")
     
     # Thống kê dẫn đầu
-    print(f"\n🎯 SỐ LẦN DẪN ĐẦU CHỈ SỐ:")
+    print(f"\nSỐ LẦN DẪN ĐẦU CHỈ SỐ:")
     print("-" * 80)
     leadership_counts = best_teams_df['Best_Team'].value_counts().head(10)
     for i, (team, count) in enumerate(leadership_counts.items(), 1):
         print(f"{i:2d}. {team:<25} {count:>3} chỉ số")
     
     # Một số chỉ số nổi bật
-    print(f"\n⭐ MỘT SỐ CHỈ SỐ NỔI BẬT:")
+    print(f"\nMỘT SỐ CHỈ SỐ NỔI BẬT:")
     print("-" * 80)
     important_metrics = ['Goals', 'Assists', 'Pass_Completion_Pct', 'Tackles_Won', 'Save_Pct']
     for metric in important_metrics:
@@ -347,7 +347,7 @@ def display_summary(scores_df, best_team_analysis, best_teams_df):
 def main():
     """Hàm chính"""
     print("="*80)
-    print("⚽ PHÂN TÍCH ĐỘI BÓNG TỐT NHẤT - PREMIER LEAGUE 2024-2025")
+    print("PHÂN TÍCH ĐỘI BÓNG TỐT NHẤT - PREMIER LEAGUE 2024-2025")
     print("="*80)
     
     try:
@@ -370,20 +370,20 @@ def main():
         display_summary(scores_df, best_team_analysis, best_teams_df)
         
         print("\n" + "="*80)
-        print("✅ HOÀN THÀNH!")
+        print("HOÀN THÀNH!")
         print("="*80)
-        print(f"\n📁 File kết quả: {OUTPUT_FILE}")
-        print(f"\n💡 Kết luận:")
+        print(f"\nFile kết quả: {OUTPUT_FILE}")
+        print(f"\nKết luận:")
         print(f"   Đội {best_team_analysis['team']} đang có phong độ tốt nhất")
         print(f"   Premier League mùa giải 2024-2025 với điểm tổng thể {best_team_analysis['score_percentage']:.2f}%")
         
     except FileNotFoundError as e:
-        print(f"\n❌ Lỗi: Không tìm thấy file")
+        print(f"\nLỗi: Không tìm thấy file")
         print(f"   {e}")
-        print(f"\n💡 Vui lòng chạy team_statistics.py trước")
+        print(f"\nVui lòng chạy team_statistics.py trước")
         
     except Exception as e:
-        print(f"\n❌ Lỗi: {e}")
+        print(f"\nLỗi: {e}")
         import traceback
         traceback.print_exc()
 

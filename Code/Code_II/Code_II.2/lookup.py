@@ -108,7 +108,7 @@ def save_to_csv(data, filename, is_player=True):
         
         return filepath
     except Exception as e:
-        print(f"❌ Lỗi khi lưu file CSV: {e}")
+        print(f"Lỗi khi lưu file CSV: {e}")
         return None
 
 
@@ -136,11 +136,11 @@ def display_player_table(player_data):
         player = player_data
         
         print("\n" + "=" * 80)
-        print(f"⚽ THÔNG TIN CẦU THỦ: {player.get('Name', 'N/a')}")
+        print(f"THÔNG TIN CẦU THỦ: {player.get('Name', 'N/a')}")
         print("=" * 80)
         
         # Thông tin cơ bản
-        print("\n📋 THÔNG TIN CƠ BẢN:")
+        print("\nTHÔNG TIN CƠ BẢN:")
         basic_info = [
             ['Tên', player.get('Name', 'N/a')],
             ['Quốc tịch', player.get('Nation', 'N/a')],
@@ -151,7 +151,7 @@ def display_player_table(player_data):
         print(tabulate(basic_info, tablefmt='simple'))
         
         # Thời gian thi đấu
-        print("\n⏱️ THỜI GIAN THI ĐẤU:")
+        print("\nTHỜI GIAN THI ĐẤU:")
         time_info = [
             ['Số trận', player.get('Matches_Played', 'N/a')],
             ['Số trận đá chính', player.get('Starts', 'N/a')],
@@ -160,7 +160,7 @@ def display_player_table(player_data):
         print(tabulate(time_info, tablefmt='simple'))
         
         # Tấn công
-        print("\n⚡ CHỈ SỐ TẤN CÔNG:")
+        print("\nCHỈ SỐ TẤN CÔNG:")
         attack_info = [
             ['Bàn thắng', player.get('Goals', 'N/a')],
             ['Kiến tạo', player.get('Assists', 'N/a')],
@@ -172,7 +172,7 @@ def display_player_table(player_data):
         print(tabulate(attack_info, tablefmt='simple'))
         
         # Chuyền bóng
-        print("\n🎯 CHỈ SỐ CHUYỀN BÓNG:")
+        print("\nCHỈ SỐ CHUYỀN BÓNG:")
         pass_info = [
             ['Đường chuyền hoàn thành', player.get('Passes_Completed', 'N/a')],
             ['Tỉ lệ chính xác (%)', player.get('Pass_Completion_Pct', 'N/a')],
@@ -181,7 +181,7 @@ def display_player_table(player_data):
         print(tabulate(pass_info, tablefmt='simple'))
         
         # Phòng thủ
-        print("\n🛡️ CHỈ SỐ PHÒNG THỦ:")
+        print("\nCHỈ SỐ PHÒNG THỦ:")
         defense_info = [
             ['Tắc bóng', player.get('Tackles', 'N/a')],
             ['Tắc bóng thành công', player.get('Tackles_Won', 'N/a')],
@@ -191,7 +191,7 @@ def display_player_table(player_data):
         print(tabulate(defense_info, tablefmt='simple'))
         
         # Kỷ luật
-        print("\n🟨 KỶ LUẬT:")
+        print("\nKỶ LUẬT:")
         card_info = [
             ['Thẻ vàng', player.get('Yellow_Cards', 'N/a')],
             ['Thẻ đỏ', player.get('Red_Cards', 'N/a')],
@@ -203,8 +203,8 @@ def display_player_table(player_data):
 def display_club_table(players_data, club_name):
     """Hiển thị danh sách cầu thủ của CLB dưới dạng bảng"""
     print("\n" + "=" * 100)
-    print(f"🏆 DANH SÁCH CẦU THỦ: {club_name}")
-    print(f"📊 Tổng số: {len(players_data)} cầu thủ")
+    print(f"DANH SÁCH CẦU THỦ: {club_name}")
+    print(f"Tổng số: {len(players_data)} cầu thủ")
     print("=" * 100)
     
     # Chuẩn bị dữ liệu cho bảng
@@ -243,9 +243,9 @@ def display_club_table(players_data, club_name):
     print(tabulate(table_data, headers=headers, tablefmt='grid'))
     
     # Thống kê tổng hợp
-    print("\n📊 TỔNG HỢP:")
-    print(f"⚽ Tổng bàn thắng: {int(total_goals)}")
-    print(f"🎯 Tổng kiến tạo: {int(total_assists)}")
+    print("\nTỔNG HỢP:")
+    print(f"Tổng bàn thắng: {int(total_goals)}")
+    print(f"Tổng kiến tạo: {int(total_assists)}")
     print("=" * 100)
 
 
@@ -258,9 +258,6 @@ def main():
         epilog="""
 Ví dụ sử dụng:
   python lookup.py --name "Mohamed Salah"
-  python lookup.py --club Liverpool
-  python lookup.py --name "Erling Haaland"
-  python lookup.py --club "Manchester City"
 
 Lưu ý:
   - API server phải đang chạy (python api.py)
@@ -276,27 +273,24 @@ Lưu ý:
     # Kiểm tra input
     if not args.name and not args.club:
         parser.print_help()
-        print("\n❌ Lỗi: Vui lòng cung cấp ít nhất một tham số (--name hoặc --club)")
+        print("\nLỗi: Vui lòng cung cấp ít nhất một tham số (--name hoặc --club)")
         sys.exit(1)
     
     if args.name and args.club:
-        print("⚠️ Cảnh báo: Chỉ nên sử dụng một tham số tại một thời điểm.")
+        print("Cảnh báo: Chỉ nên sử dụng một tham số tại một thời điểm.")
         print("Ưu tiên tra cứu theo tên cầu thủ...\n")
     
     # Kiểm tra kết nối API
-    print("🔍 Đang kiểm tra kết nối API...")
+    print("Đang kiểm tra kết nối API...")
     if not check_api_connection():
-        print(f"❌ Không thể kết nối tới API server: {API_BASE_URL}")
-        print("\n💡 Vui lòng chạy API server trước:")
-        print("   cd Code/Code_II/Code_II.1")
-        print("   python api.py")
+        print(f"Không thể kết nối tới API server: {API_BASE_URL}")
         sys.exit(1)
     
-    print(f"✅ Đã kết nối: {API_BASE_URL}\n")
+    print(f"Đã kết nối: {API_BASE_URL}\n")
     
     # Tra cứu theo tên cầu thủ
     if args.name:
-        print(f"🔍 Đang tra cứu cầu thủ: {args.name}")
+        print(f"Đang tra cứu cầu thủ: {args.name}")
         result = search_player(args.name)
         
         if result.get('success'):
@@ -304,7 +298,7 @@ Lưu ý:
             
             # Hiển thị trên màn hình
             if isinstance(data, list):
-                print(f"\n✅ Tìm thấy {len(data)} cầu thủ có tên tương tự:")
+                print(f"\nTìm thấy {len(data)} cầu thủ có tên tương tự:")
                 display_player_table(data)
                 
                 # Lưu CSV
@@ -312,7 +306,7 @@ Lưu ý:
                 filepath = save_to_csv(data, filename, is_player=True)
                 
             else:
-                print(f"\n✅ Tìm thấy cầu thủ: {data.get('Name')}")
+                print(f"\nTìm thấy cầu thủ: {data.get('Name')}")
                 display_player_table(data)
                 
                 # Lưu CSV
@@ -320,14 +314,14 @@ Lưu ý:
                 filepath = save_to_csv(data, filename, is_player=True)
             
             if filepath:
-                print(f"\n💾 Đã lưu kết quả vào: {filepath}")
+                print(f"\nĐã lưu kết quả vào: {filepath}")
         else:
-            print(f"\n❌ {result.get('message', 'Không tìm thấy cầu thủ')}")
+            print(f"\n{result.get('message', 'Không tìm thấy cầu thủ')}")
             sys.exit(1)
     
     # Tra cứu theo câu lạc bộ
     elif args.club:
-        print(f"🔍 Đang tra cứu câu lạc bộ: {args.club}")
+        print(f"Đang tra cứu câu lạc bộ: {args.club}")
         result = search_club(args.club)
         
         if result.get('success'):
@@ -335,7 +329,7 @@ Lưu ý:
             team_name = result.get('team_stats', {}).get('team_name', args.club)
             
             # Hiển thị trên màn hình
-            print(f"\n✅ Tìm thấy {len(players)} cầu thủ")
+            print(f"\nTìm thấy {len(players)} cầu thủ")
             display_club_table(players, team_name)
             
             # Lưu CSV
@@ -343,12 +337,12 @@ Lưu ý:
             filepath = save_to_csv(players, filename, is_player=False)
             
             if filepath:
-                print(f"\n💾 Đã lưu kết quả vào: {filepath}")
+                print(f"\nĐã lưu kết quả vào: {filepath}")
         else:
-            print(f"\n❌ {result.get('message', 'Không tìm thấy câu lạc bộ')}")
+            print(f"\n{result.get('message', 'Không tìm thấy câu lạc bộ')}")
             sys.exit(1)
     
-    print("\n✅ Hoàn thành!")
+    print("\nHoàn thành!")
 
 
 if __name__ == '__main__':
