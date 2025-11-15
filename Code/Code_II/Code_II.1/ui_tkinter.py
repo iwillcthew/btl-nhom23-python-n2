@@ -15,7 +15,7 @@ API_BASE_URL = "http://127.0.0.1:5000"
 class FootballStatsApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("⚽ Football Stats - Premier League 2024/25")
+        self.root.title("Football Stats - Premier League 2024/25")
         self.root.geometry("1100x750")
         self.root.resizable(True, True)
         
@@ -51,10 +51,10 @@ class FootballStatsApp:
         # Nếu không kết nối được
         self.api_connected = False
         result = messagebox.askyesno(
-            "⚠️ Lỗi kết nối API", 
+            "Lỗi kết nối API", 
             "Không thể kết nối tới API server!\n\n"
             f"URL: {API_BASE_URL}\n\n"
-            "❗ Vui lòng chạy API server trước:\n"
+            "Vui lòng chạy API server trước:\n"
             "   cd Code/Code_II/Code_II.1\n"
             "   python api.py\n\n"
             "Bạn có muốn tiếp tục không?\n"
@@ -76,7 +76,7 @@ class FootballStatsApp:
         # Title
         title_label = tk.Label(
             header_frame, 
-            text="⚽ FOOTBALL STATS - PREMIER LEAGUE 2024/25",
+            text="FOOTBALL STATS - PREMIER LEAGUE 2024/25",
             font=("Arial", 18, "bold"),
             bg=self.colors['primary'],
             fg=self.colors['white']
@@ -85,7 +85,7 @@ class FootballStatsApp:
         
         # Connection Status
         status_color = "#90EE90" if self.api_connected else "#FF6B6B"
-        status_text = f"🟢 Connected: {API_BASE_URL}" if self.api_connected else "🔴 Disconnected"
+        status_text = f"Connected: {API_BASE_URL}" if self.api_connected else "Disconnected"
         
         self.status_label = tk.Label(
             header_frame,
@@ -119,7 +119,7 @@ class FootballStatsApp:
     def create_player_tab(self):
         """Tab tra cứu theo tên cầu thủ"""
         tab = tk.Frame(self.notebook, bg=self.colors['white'])
-        self.notebook.add(tab, text="  🔍 Tra cứu Cầu Thủ  ")
+        self.notebook.add(tab, text="  Tra cứu Cầu Thủ  ")
         
         # Search Frame
         search_frame = tk.Frame(tab, bg=self.colors['white'], pady=20)
@@ -145,7 +145,7 @@ class FootballStatsApp:
         # Buttons
         tk.Button(
             search_frame,
-            text="🔍 Tìm kiếm",
+            text="Tìm kiếm",
             font=("Arial", 11, "bold"),
             bg=self.colors['success'],
             fg=self.colors['white'],
@@ -158,7 +158,7 @@ class FootballStatsApp:
         
         tk.Button(
             search_frame,
-            text="🗑️ Xóa",
+            text="Xóa",
             font=("Arial", 11),
             bg=self.colors['danger'],
             fg=self.colors['white'],
@@ -172,7 +172,7 @@ class FootballStatsApp:
         # Result Frame
         result_container = tk.LabelFrame(
             tab,
-            text="  📊 Kết quả  ",
+            text="  Kết quả  ",
             font=("Arial", 11, "bold"),
             bg=self.colors['white'],
             relief=tk.SOLID,
@@ -194,7 +194,7 @@ class FootballStatsApp:
     def create_team_tab(self):
         """Tab tra cứu theo câu lạc bộ"""
         tab = tk.Frame(self.notebook, bg=self.colors['white'])
-        self.notebook.add(tab, text="  🏆 Tra cứu Câu Lạc Bộ  ")
+        self.notebook.add(tab, text="  Tra cứu Câu Lạc Bộ  ")
         
         # Select Frame
         select_frame = tk.Frame(tab, bg=self.colors['white'], pady=20)
@@ -218,7 +218,7 @@ class FootballStatsApp:
         # Buttons
         tk.Button(
             select_frame,
-            text="🔍 Xem danh sách",
+            text="Xem danh sách",
             font=("Arial", 11, "bold"),
             bg=self.colors['info'],
             fg=self.colors['white'],
@@ -231,7 +231,7 @@ class FootballStatsApp:
         
         tk.Button(
             select_frame,
-            text="🗑️ Xóa",
+            text="Xóa",
             font=("Arial", 11),
             bg=self.colors['danger'],
             fg=self.colors['white'],
@@ -245,7 +245,7 @@ class FootballStatsApp:
         # Result Frame
         result_container = tk.LabelFrame(
             tab,
-            text="  📋 Danh sách cầu thủ  ",
+            text="  Danh sách cầu thủ  ",
             font=("Arial", 11, "bold"),
             bg=self.colors['white'],
             relief=tk.SOLID,
@@ -267,7 +267,7 @@ class FootballStatsApp:
     def create_api_info_tab(self):
         """Tab thông tin API"""
         tab = tk.Frame(self.notebook, bg=self.colors['white'])
-        self.notebook.add(tab, text="  ℹ️ API Info  ")
+        self.notebook.add(tab, text="  API Info  ")
         
         info_container = tk.Frame(tab, bg=self.colors['white'], pady=20)
         info_container.pack(fill=tk.BOTH, expand=True, padx=20)
@@ -275,7 +275,7 @@ class FootballStatsApp:
         # Title
         tk.Label(
             info_container,
-            text="📡 Thông tin API Server",
+            text="Thông tin API Server",
             font=("Arial", 16, "bold"),
             bg=self.colors['white']
         ).pack(pady=(0, 20))
@@ -295,7 +295,7 @@ class FootballStatsApp:
         # Refresh Button
         tk.Button(
             info_container,
-            text="🔄 Làm mới thông tin",
+            text="Làm mới thông tin",
             font=("Arial", 11, "bold"),
             bg=self.colors['info'],
             fg=self.colors['white'],
@@ -328,11 +328,11 @@ class FootballStatsApp:
         player_name = self.player_entry.get().strip()
         
         if not player_name:
-            messagebox.showwarning("⚠️ Cảnh báo", "Vui lòng nhập tên cầu thủ!")
+            messagebox.showwarning("Cảnh báo", "Vui lòng nhập tên cầu thủ!")
             return
         
         self.player_text.delete(1.0, tk.END)
-        self.player_text.insert(tk.END, "⏳ Đang tìm kiếm...\n")
+        self.player_text.insert(tk.END, "Đang tìm kiếm...\n")
         self.root.update()
         
         try:
@@ -355,23 +355,23 @@ class FootballStatsApp:
                 self.show_error(f"Lỗi HTTP: {response.status_code}")
                 
         except requests.exceptions.Timeout:
-            messagebox.showerror("❌ Lỗi", "Kết nối timeout! API server có thể quá chậm.")
+            messagebox.showerror("Lỗi", "Kết nối timeout! API server có thể quá chậm.")
         except requests.exceptions.ConnectionError:
             messagebox.showerror(
-                "❌ Lỗi kết nối",
+                "Lỗi kết nối",
                 "Không thể kết nối tới API!\n\n"
                 "Vui lòng kiểm tra:\n"
                 "1. API server đang chạy (python api.py)\n"
                 f"2. URL đúng: {API_BASE_URL}"
             )
         except Exception as e:
-            messagebox.showerror("❌ Lỗi", f"Lỗi không xác định:\n{str(e)}")
+            messagebox.showerror("Lỗi", f"Lỗi không xác định:\n{str(e)}")
     
     def display_multiple_players(self, data):
         """Hiển thị nhiều cầu thủ tìm được"""
         self.player_text.delete(1.0, tk.END)
         
-        self.player_text.insert(tk.END, f"🔍 {data.get('message', 'Kết quả tìm kiếm')}\n\n")
+        self.player_text.insert(tk.END, f"{data.get('message', 'Kết quả tìm kiếm')}\n\n")
         
         players = data.get('data', [])
         for i, player in enumerate(players, 1):
@@ -380,8 +380,8 @@ class FootballStatsApp:
             self.player_text.insert(tk.END, f" - {player['Team']} ({player['Position']})\n")
             self.player_text.insert(
                 tk.END,
-                f"   ⚽ Bàn thắng: {player['Goals']} | 🎯 Kiến tạo: {player['Assists']} | "
-                f"⏱️ Số phút: {player['Minutes']}\n\n"
+                f"   Bàn thắng: {player['Goals']} | Kiến tạo: {player['Assists']} | "
+                f"Số phút: {player['Minutes']}\n\n"
             )
         
         self.player_text.tag_config("bold", font=("Consolas", 10, "bold"))
@@ -392,11 +392,11 @@ class FootballStatsApp:
         
         # Header
         self.player_text.insert(tk.END, "=" * 85 + "\n")
-        self.player_text.insert(tk.END, f"⚽ THÔNG TIN CẦU THỦ: {player['Name']}\n", "title")
+        self.player_text.insert(tk.END, f"THÔNG TIN CẦU THỦ: {player['Name']}\n", "title")
         self.player_text.insert(tk.END, "=" * 85 + "\n\n")
         
         # Thông tin cơ bản
-        self.player_text.insert(tk.END, "📋 THÔNG TIN CƠ BẢN:\n", "section")
+        self.player_text.insert(tk.END, "THÔNG TIN CƠ BẢN:\n", "section")
         self.player_text.insert(tk.END, "-" * 85 + "\n")
         self.add_info_row("Tên", player.get('Name', 'N/a'))
         self.add_info_row("Quốc tịch", player.get('Nation', 'N/a'))
@@ -405,14 +405,14 @@ class FootballStatsApp:
         self.add_info_row("Tuổi", player.get('Age', 'N/a'))
         
         # Thời gian thi đấu
-        self.player_text.insert(tk.END, "\n⏱️ THỜI GIAN THI ĐẤU:\n", "section")
+        self.player_text.insert(tk.END, "\nTHỜI GIAN THI ĐẤU:\n", "section")
         self.player_text.insert(tk.END, "-" * 85 + "\n")
         self.add_info_row("Số trận", player.get('Matches_Played', 'N/a'))
         self.add_info_row("Số trận đá chính", player.get('Starts', 'N/a'))
         self.add_info_row("Số phút", player.get('Minutes', 'N/a'))
         
         # Tấn công
-        self.player_text.insert(tk.END, "\n⚡ CHỈ SỐ TẤN CÔNG:\n", "section")
+        self.player_text.insert(tk.END, "\nCHỈ SỐ TẤN CÔNG:\n", "section")
         self.player_text.insert(tk.END, "-" * 85 + "\n")
         self.add_info_row("Bàn thắng", player.get('Goals', 'N/a'))
         self.add_info_row("Kiến tạo", player.get('Assists', 'N/a'))
@@ -422,14 +422,14 @@ class FootballStatsApp:
         self.add_info_row("Kiến tạo/90 phút", player.get('Assists_Per90', 'N/a'))
         
         # Chuyền bóng
-        self.player_text.insert(tk.END, "\n🎯 CHỈ SỐ CHUYỀN BÓNG:\n", "section")
+        self.player_text.insert(tk.END, "\nCHỈ SỐ CHUYỀN BÓNG:\n", "section")
         self.player_text.insert(tk.END, "-" * 85 + "\n")
         self.add_info_row("Đường chuyền hoàn thành", player.get('Passes_Completed', 'N/a'))
         self.add_info_row("Tỉ lệ chính xác (%)", player.get('Pass_Completion_Pct', 'N/a'))
         self.add_info_row("Chuyền bóng quyết định", player.get('Key_Passes', 'N/a'))
         
         # Phòng thủ
-        self.player_text.insert(tk.END, "\n🛡️ CHỈ SỐ PHÒNG THỦ:\n", "section")
+        self.player_text.insert(tk.END, "\nCHỈ SỐ PHÒNG THỦ:\n", "section")
         self.player_text.insert(tk.END, "-" * 85 + "\n")
         self.add_info_row("Tắc bóng", player.get('Tackles', 'N/a'))
         self.add_info_row("Tắc bóng thành công", player.get('Tackles_Won', 'N/a'))
@@ -437,13 +437,13 @@ class FootballStatsApp:
         self.add_info_row("Cắt bóng", player.get('Interceptions', 'N/a'))
         
         # Kỷ luật
-        self.player_text.insert(tk.END, "\n🟨 KỶ LUẬT:\n", "section")
+        self.player_text.insert(tk.END, "\nKỶ LUẬT:\n", "section")
         self.player_text.insert(tk.END, "-" * 85 + "\n")
         self.add_info_row("Thẻ vàng", player.get('Yellow_Cards', 'N/a'))
         self.add_info_row("Thẻ đỏ", player.get('Red_Cards', 'N/a'))
         
         self.player_text.insert(tk.END, "\n" + "=" * 85 + "\n")
-        self.player_text.insert(tk.END, f"\n💡 Dữ liệu từ API: {API_BASE_URL}\n", "footer")
+        self.player_text.insert(tk.END, f"\nDữ liệu từ API: {API_BASE_URL}\n", "footer")
         
         # Configure tags
         self.player_text.tag_config("title", font=("Consolas", 11, "bold"))
@@ -459,11 +459,11 @@ class FootballStatsApp:
         team_name = self.team_combo.get().strip()
         
         if not team_name:
-            messagebox.showwarning("⚠️ Cảnh báo", "Vui lòng chọn câu lạc bộ!")
+            messagebox.showwarning("Cảnh báo", "Vui lòng chọn câu lạc bộ!")
             return
         
         self.team_text.delete(1.0, tk.END)
-        self.team_text.insert(tk.END, "⏳ Đang tải dữ liệu...\n")
+        self.team_text.insert(tk.END, "Đang tải dữ liệu...\n")
         self.root.update()
         
         try:
@@ -476,22 +476,22 @@ class FootballStatsApp:
                     self.display_team_detail(data)
                 else:
                     self.team_text.delete(1.0, tk.END)
-                    self.team_text.insert(tk.END, f"❌ {data.get('message', 'Không tìm thấy')}\n")
+                    self.team_text.insert(tk.END, f"{data.get('message', 'Không tìm thấy')}\n")
             elif response.status_code == 404:
                 data = response.json()
                 self.team_text.delete(1.0, tk.END)
-                self.team_text.insert(tk.END, f"❌ {data.get('message', 'Không tìm thấy')}\n")
+                self.team_text.insert(tk.END, f"{data.get('message', 'Không tìm thấy')}\n")
             else:
                 self.team_text.delete(1.0, tk.END)
-                self.team_text.insert(tk.END, f"❌ Lỗi HTTP: {response.status_code}\n")
+                self.team_text.insert(tk.END, f"Lỗi HTTP: {response.status_code}\n")
                 
         except requests.exceptions.ConnectionError:
             messagebox.showerror(
-                "❌ Lỗi kết nối",
+                "Lỗi kết nối",
                 "Không thể kết nối tới API!\n\nVui lòng chạy API server trước."
             )
         except Exception as e:
-            messagebox.showerror("❌ Lỗi", f"Lỗi không xác định:\n{str(e)}")
+            messagebox.showerror("Lỗi", f"Lỗi không xác định:\n{str(e)}")
     
     def display_team_detail(self, data):
         """Hiển thị danh sách cầu thủ của CLB"""
@@ -502,21 +502,21 @@ class FootballStatsApp:
         
         # Header
         self.team_text.insert(tk.END, "=" * 105 + "\n")
-        self.team_text.insert(tk.END, f"🏆 {team_stats.get('team_name', 'N/a')}\n", "title")
-        self.team_text.insert(tk.END, f"📊 Tổng số: {team_stats.get('total_players', 0)} cầu thủ\n")
+        self.team_text.insert(tk.END, f"{team_stats.get('team_name', 'N/a')}\n", "title")
+        self.team_text.insert(tk.END, f"Tổng số: {team_stats.get('total_players', 0)} cầu thủ\n")
         self.team_text.insert(tk.END, "=" * 105 + "\n\n")
         
         # Thống kê vị trí
         positions = team_stats.get('positions', {})
         if positions:
-            self.team_text.insert(tk.END, "📈 PHÂN BỐ VỊ TRÍ:\n", "section")
+            self.team_text.insert(tk.END, "PHÂN BỐ VỊ TRÍ:\n", "section")
             self.team_text.insert(tk.END, "-" * 105 + "\n")
             for pos, count in sorted(positions.items()):
                 self.team_text.insert(tk.END, f"  {pos:10s}: {count} cầu thủ\n")
             self.team_text.insert(tk.END, "\n")
         
         # Bảng cầu thủ
-        self.team_text.insert(tk.END, "👥 DANH SÁCH CẦU THỦ:\n", "section")
+        self.team_text.insert(tk.END, "DANH SÁCH CẦU THỦ:\n", "section")
         self.team_text.insert(tk.END, "-" * 105 + "\n")
         
         # Header bảng
@@ -544,10 +544,10 @@ class FootballStatsApp:
         
         # Footer
         self.team_text.insert(tk.END, "\n" + "=" * 105 + "\n")
-        self.team_text.insert(tk.END, "📊 TỔNG HỢP:\n", "section")
-        self.team_text.insert(tk.END, f"⚽ Tổng bàn thắng: {int(total_goals)}\n")
-        self.team_text.insert(tk.END, f"🎯 Tổng kiến tạo: {int(total_assists)}\n")
-        self.team_text.insert(tk.END, f"\n💡 Dữ liệu từ API: {API_BASE_URL}\n", "footer")
+        self.team_text.insert(tk.END, "TỔNG HỢP:\n", "section")
+        self.team_text.insert(tk.END, f"Tổng bàn thắng: {int(total_goals)}\n")
+        self.team_text.insert(tk.END, f"Tổng kiến tạo: {int(total_assists)}\n")
+        self.team_text.insert(tk.END, f"\nDữ liệu từ API: {API_BASE_URL}\n", "footer")
         
         # Configure tags
         self.team_text.tag_config("title", font=("Consolas", 12, "bold"))
@@ -566,37 +566,37 @@ class FootballStatsApp:
                 data = response.json()
                 
                 self.api_info_text.insert(tk.END, "=" * 85 + "\n")
-                self.api_info_text.insert(tk.END, "📡 API SERVER INFORMATION\n", "title")
+                self.api_info_text.insert(tk.END, "API SERVER INFORMATION\n", "title")
                 self.api_info_text.insert(tk.END, "=" * 85 + "\n\n")
                 
-                self.api_info_text.insert(tk.END, f"🌐 Base URL    : {API_BASE_URL}\n")
-                self.api_info_text.insert(tk.END, f"📦 Version     : {data.get('version', 'N/a')}\n")
-                self.api_info_text.insert(tk.END, f"📝 Description : {data.get('message', 'N/a')}\n\n")
+                self.api_info_text.insert(tk.END, f"Base URL    : {API_BASE_URL}\n")
+                self.api_info_text.insert(tk.END, f"Version     : {data.get('version', 'N/a')}\n")
+                self.api_info_text.insert(tk.END, f"Description : {data.get('message', 'N/a')}\n\n")
                 
                 self.api_info_text.insert(tk.END, "=" * 85 + "\n")
-                self.api_info_text.insert(tk.END, "📋 ENDPOINTS:\n", "section")
+                self.api_info_text.insert(tk.END, "ENDPOINTS:\n", "section")
                 self.api_info_text.insert(tk.END, "=" * 85 + "\n\n")
                 
                 endpoints = data.get('endpoints', {})
                 for endpoint, desc in endpoints.items():
-                    self.api_info_text.insert(tk.END, f"🔹 {endpoint}\n", "bold")
-                    self.api_info_text.insert(tk.END, f"   → {desc}\n\n")
+                    self.api_info_text.insert(tk.END, f"{endpoint}\n", "bold")
+                    self.api_info_text.insert(tk.END, f"   {desc}\n\n")
                 
                 self.api_info_text.insert(tk.END, "=" * 85 + "\n")
-                self.api_info_text.insert(tk.END, "💡 EXAMPLES:\n", "section")
+                self.api_info_text.insert(tk.END, "EXAMPLES:\n", "section")
                 self.api_info_text.insert(tk.END, "=" * 85 + "\n\n")
                 
                 examples = data.get('examples', {})
                 for name, url in examples.items():
-                    self.api_info_text.insert(tk.END, f"🔸 {name.capitalize()}:\n")
+                    self.api_info_text.insert(tk.END, f"{name.capitalize()}:\n")
                     self.api_info_text.insert(tk.END, f"   {API_BASE_URL}{url}\n\n")
                 
                 self.api_info_text.insert(tk.END, "=" * 85 + "\n")
-                self.api_info_text.insert(tk.END, "✅ API Server đang hoạt động bình thường!\n", "success")
+                self.api_info_text.insert(tk.END, "API Server đang hoạt động bình thường!\n", "success")
                 
                 # Update status
                 self.status_label.config(
-                    text=f"🟢 Connected: {API_BASE_URL}",
+                    text=f"Connected: {API_BASE_URL}",
                     fg="#90EE90"
                 )
                 self.api_connected = True
@@ -610,22 +610,22 @@ class FootballStatsApp:
     def show_api_error(self, error):
         """Hiển thị lỗi API"""
         self.api_info_text.insert(tk.END, "=" * 85 + "\n")
-        self.api_info_text.insert(tk.END, "❌ CONNECTION ERROR\n", "error")
+        self.api_info_text.insert(tk.END, "CONNECTION ERROR\n", "error")
         self.api_info_text.insert(tk.END, "=" * 85 + "\n\n")
         self.api_info_text.insert(tk.END, f"Lỗi: {error}\n\n")
-        self.api_info_text.insert(tk.END, "💡 Vui lòng kiểm tra:\n")
+        self.api_info_text.insert(tk.END, "Vui lòng kiểm tra:\n")
         self.api_info_text.insert(tk.END, "   1. API server đang chạy (python api.py)\n")
         self.api_info_text.insert(tk.END, f"   2. URL đúng: {API_BASE_URL}\n")
         self.api_info_text.insert(tk.END, "   3. Không có firewall chặn kết nối\n")
         
-        self.status_label.config(text="🔴 Disconnected", fg="#FF6B6B")
+        self.status_label.config(text="Disconnected", fg="#FF6B6B")
         self.api_connected = False
     
     def show_error(self, message):
         """Hiển thị lỗi trong player text"""
         self.player_text.delete(1.0, tk.END)
-        self.player_text.insert(tk.END, f"❌ {message}\n\n")
-        self.player_text.insert(tk.END, "💡 Gợi ý: Kiểm tra lại tên cầu thủ hoặc thử tìm với từ khóa ngắn hơn.")
+        self.player_text.insert(tk.END, f"{message}\n\n")
+        self.player_text.insert(tk.END, "Gợi ý: Kiểm tra lại tên cầu thủ hoặc thử tìm với từ khóa ngắn hơn.")
     
     def clear_player_result(self):
         """Xóa kết quả tìm kiếm cầu thủ"""

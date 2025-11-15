@@ -314,16 +314,10 @@ if __name__ == '__main__':
     # Kiểm tra database tồn tại
     if not os.path.exists(DATABASE_PATH):
         print(f"❌ Lỗi: Không tìm thấy database tại {DATABASE_PATH}")
-        print("Vui lòng chạy scraper_fbref.py trước để tạo database.")
     else:
-        print("=" * 60)
-        print("🚀 FLASK REST API SERVER")
-        print("=" * 60)
-        print(f"📂 Database: {DATABASE_PATH}")
-        print(f"🌐 Server: http://127.0.0.1:5000")
-        print(f"📖 API Docs: http://127.0.0.1:5000")
-        print("=" * 60)
-        print("\nNhấn Ctrl+C để dừng server\n")
-        
+        print("FLASK REST API SERVER")
+        print(f"Database: {DATABASE_PATH}")
+        print(f"Server: http://127.0.0.1:5000")
+        print(f"API Docs: http://127.0.0.1:5000")
         # Chạy server
         app.run(debug=True, host='0.0.0.0', port=5000)

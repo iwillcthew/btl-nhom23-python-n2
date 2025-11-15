@@ -285,17 +285,6 @@ Output/Output_II/
 └── ...
 ```
 
-## So sánh với Code_II.1
-
-| Tiêu chí | Code_II.1 (GUI) | Code_II.2 (CLI) |
-|----------|-----------------|-----------------|
-| Interface | Tkinter GUI | Command Line |
-| Cách dùng | Click buttons | Gõ lệnh |
-| Hiển thị | ScrolledText | Terminal + Bảng |
-| Export | Manual | Tự động (CSV) |
-| Tên file | Cố định | Theo tên cầu thủ/CLB |
-| Use case | Desktop user | Script/Automation |
-
 ## Tác giả
 
 Nhóm 23 - Bài tập lớn Python - Phần II.2
